@@ -1,29 +1,9 @@
 #include <Arduino.h>
-
-#include <DIYables_IRcontroller.h>
-#include <FastLED.h>
-
-// put function declarations here:
+#include "Timer.h"
 
 #define IR_RECEIVER_PIN 13
 
 #define NUM_MENU_ITEMS 3
-
-enum ProgramState
-{
-	FIRST_BOOT,
-	IDLE,
-	DISPLAY_MENU,
-	CONFIGURE_COUNTDOWN,
-	RUNNING,
-};
-
-enum MenuItem
-{
-	COUNTDOWN,
-	COUNTDOWN_WITH_ROUNDS,
-	SET_TIME,
-};
 
 enum Phase
 {
@@ -32,91 +12,21 @@ enum Phase
 	REST,
 };
 
-DIYables_IRcontroller_21 irController(IR_RECEIVER_PIN, 200); // debounce time is 200ms
-hw_timer_t *hw_timer = NULL;
+hw_timer_t *hw_timer = nullptr;
 
 void setup()
 {
-	irController.begin();
-
+	Timer* timer = Timer::getInstance();
+	
 	hw_timer = timerBegin(0, 80, true);
 	timerAlarmWrite(hw_timer, 1000000, true);
-	// Configure interrupt for IR input
+
+	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
 }
 
 void loop()
 {
 }
-
-class Timer
-{
-
-private:
-	static Timer *instance;
-	static unsigned int seconds_counter;
-
-	Timer(unsigned int work_seconds, unsigned int rest_seconds, unsigned int num_rounds)
-	{
-		this->work_seconds = work_seconds;
-		this->rest_seconds = rest_seconds;
-		this->num_rounds = num_rounds;
-		current_phase = HOLD;
-
-		instance = this;
-		seconds_counter = 0;
-		timerAttachInterrupt(hw_timer, &on_timer, true);
-	}
-
-public:
-	Timer(const Timer &obj) = delete;
-
-	unsigned int work_seconds;
-	unsigned int rest_seconds;
-	unsigned int num_rounds;
-	Phase current_phase;
-
-	static Timer *get_instance()
-	{
-		if (instance == nullptr)
-		{
-			instance = new Timer(0, 0, 0);
-			return instance;
-		}
-		else
-		{
-			return instance;
-		}
-	}
-
-	static void IRAM_ATTR on_timer()
-	{
-		seconds_counter++;
-		switch (instance->current_phase)
-		{
-		case WORK:
-			if (instance->work_seconds >= seconds_counter)
-			{
-				seconds_counter = 0;
-				instance->current_phase = REST;
-			}
-			break;
-		case REST:
-			if (instance->rest_seconds >= seconds_counter)
-			{
-				seconds_counter = 0;
-				instance->current_phase = WORK;
-			}
-			break;
-		}
-	}
-
-	void run_session()
-	{
-		seconds_counter = 0;
-		current_phase = WORK;
-		timerAlarmEnable(hw_timer);
-	}
-};
 
 class Display
 {
