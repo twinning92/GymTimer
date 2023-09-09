@@ -1,6 +1,12 @@
+#include <Arduino.h>
 #include "Timer.h"
 
 Timer *Timer::instance = nullptr;
+
+Timer::Timer()
+{
+    this->instance = nullptr;
+};
 
 Timer *Timer::getInstance()
 {
@@ -11,7 +17,7 @@ Timer *Timer::getInstance()
     return instance;
 }
 
-static void IRAM_ATTR on_timer()
+static void IRAM_ATTR Timer::on_timer()
 {
     // TODO: Change it so the final rest period doesn't run.
     seconds_counter++;
@@ -34,30 +40,30 @@ static void IRAM_ATTR on_timer()
     }
 }
 
-void run_session(hw_timer_t* hw_timer)
+void Timer::run_session(hw_timer_t *hw_timer)
 {
-    this.seconds_counter = 0;
-    this.current_phase = WORK;
+    this->seconds_counter = 0;
+    this->current_phase = WORK;
     timerAlarmEnable(hw_timer);
 }
 
-void end_session(hw_timer_t* hw_timer)
+void Timer::end_session(hw_timer_t *hw_timer)
 {
-    this.current_phase = HOLD;
+    this->current_phase = HOLD;
     timerAlarmDisable(hw_timer);
 }
 
-void set_work_seconds(unsigned int work_seconds)
+void Timer::set_work_seconds(unsigned int work_seconds)
 {
     this->work_seconds = work_seconds;
 }
 
-void set_rest_seconds(unsigned int rest_seconds)
+void Timer::set_rest_seconds(unsigned int rest_seconds)
 {
     this->rest_seconds = rest_seconds;
 }
 
-void set_number_rounds(unsigned int num_rounds)
+void Timer::set_number_rounds(unsigned int num_rounds)
 {
     this->num_rounds = num_rounds;
 }

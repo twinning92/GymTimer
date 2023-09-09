@@ -5,13 +5,6 @@
 
 #define NUM_MENU_ITEMS 3
 
-enum Phase
-{
-	HOLD,
-	WORK,
-	REST,
-};
-
 hw_timer_t *hw_timer = nullptr;
 
 void setup()
