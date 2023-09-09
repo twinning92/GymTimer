@@ -5,6 +5,7 @@ Timer *Timer::instance = nullptr;
 
 Timer::Timer()
 {
+   	display_queue = xQueueCreate(10, sizeof(int));
     this->instance = nullptr;
 };
 
@@ -17,8 +18,11 @@ Timer *Timer::getInstance()
     return instance;
 }
 
-static void IRAM_ATTR Timer::on_timer()
+void IRAM_ATTR Timer::on_timer()
 {
+    int update_display = 1;
+    xQueueSendFromISR(display_queue, &update_display, NULL);
+
     // TODO: Change it so the final rest period doesn't run.
     seconds_counter++;
     switch (instance->current_phase)
