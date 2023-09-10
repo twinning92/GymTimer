@@ -5,7 +5,7 @@ Timer *Timer::instance = nullptr;
 
 Timer::Timer()
 {
-   	display_queue = xQueueCreate(10, sizeof(int));
+    display_queue = xQueueCreate(10, sizeof(int));
     this->instance = nullptr;
 };
 
@@ -27,18 +27,18 @@ void IRAM_ATTR Timer::on_timer()
     seconds_counter++;
     switch (instance->current_phase)
     {
-    case WORK:
-        if (instance->work_seconds >= seconds_counter)
+    case Phase::WORK:
+        if (instance->work_seconds > seconds_counter)
         {
             seconds_counter = 0;
-            instance->current_phase = REST;
+            instance->current_phase = Phase::REST;
         }
         break;
-    case REST:
-        if (instance->rest_seconds >= seconds_counter)
+    case Phase::REST:
+        if (instance->rest_seconds > seconds_counter)
         {
             seconds_counter = 0;
-            instance->current_phase = WORK;
+            instance->current_phase = Phase::WORK;
         }
         break;
     }
@@ -46,15 +46,21 @@ void IRAM_ATTR Timer::on_timer()
 
 void Timer::run_session(hw_timer_t *hw_timer)
 {
-    this->seconds_counter = 0;
-    this->current_phase = WORK;
-    timerAlarmEnable(hw_timer);
+    if (instance->current_phase == Phase::HOLD)
+    {
+        this->seconds_counter = 0;
+        this->current_phase = Phase::WORK;
+        timerAlarmEnable(hw_timer);
+    }
 }
 
 void Timer::end_session(hw_timer_t *hw_timer)
 {
-    this->current_phase = HOLD;
-    timerAlarmDisable(hw_timer);
+    if (instance->current_phase != Phase::HOLD)
+    {
+        this->current_phase = Phase::HOLD;
+        timerAlarmDisable(hw_timer);
+    }
 }
 
 void Timer::set_work_seconds(unsigned int work_seconds)

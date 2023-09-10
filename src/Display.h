@@ -29,20 +29,23 @@ public:
             0b1111001, // b
             0b0111101, // E
         };
-        const unsigned char segments[7] = {
-            0b10000000,
-            0b01000000,
-            0b00100000,
-            0b00010000,
-            0b00001000,
-            0b00000100,
-            0b00000010};
+        const unsigned char segments[7] = {        //      E           
+            0b10000000,  // A                             ----
+            0b01000000,  // B                          D |    | F
+            0b00100000,  // C                            | G  |
+            0b00010000,  // D                             ----
+            0b00001000,  // E                          C |    | A
+            0b00000100,  // F                            |  B |
+            0b00000010}; // G                             ----
 
     public:
         std::array<uint8_t, 28> led_range;
-        void set_led_range(int start_index);
+        unsigned char current_value;
+        Digit(uint8_t start_index);
         std::array<bool, 7> render_digit(unsigned char digit_to_render);
     };
+
+
     Display::Digit digits[6];
     CRGB leds[NUM_LEDS];
 
