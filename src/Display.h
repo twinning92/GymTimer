@@ -39,9 +39,9 @@ public:
             0b00000010}; // G                             ----
 
     public:
+        Digit(uint8_t start_index);
         std::array<uint8_t, 28> led_range;
         unsigned char current_value;
-        Digit(uint8_t start_index);
         std::array<bool, 7> render_digit(unsigned char digit_to_render);
     };
 

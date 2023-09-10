@@ -31,8 +31,3 @@ void loop()
 		translator->update_timer_display(timer->seconds_counter);
 	}
 }
-
-// Phase we're in
-// Time remaining in phase
-// Round we're in
-// Rounds remaining
