@@ -13,6 +13,7 @@ std::array<bool, 7> Display::Digit::render_digit(char* digit_to_render)
     std::array<bool, 7> segment_states;
     this->current_value = *digit_to_render;
 
+    // TODO: This is converting char to in, how to do this better with alpha-numerics?
     int int_to_render = std::atoi(digit_to_render);
 
     for (int i = 0; i < 7; i++)
@@ -27,6 +28,8 @@ Display::Display() : digits{Digit(0 * LED_OFFSET),Digit(1 * LED_OFFSET),Digit(2 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); // GRB ordering is assumed 
     FastLED.setBrightness(255);   
 }
+
+
 
 void Display::update_display(int position, char number_to_render)
 {
@@ -54,6 +57,7 @@ void Display::update_display(int position, char number_to_render)
     FastLED.show();
 }
 
+// Trouble shooting function to isolate a specific segement.
 void Display::update_segments(int position, int segment, bool value)
 {
     std::array<uint8_t, 28> led_range = digits[position].led_range;
