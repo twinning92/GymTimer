@@ -14,20 +14,41 @@ Translator *translator;
 
 void setup()
 {
-	timer = Timer::getInstance();
+	// timer = Timer::getInstance();
 	display = new Display();
-	translator = new Translator(display);
+	// translator = new Translator(display);
 
-	hw_timer = timerBegin(0, 80, true);
-	timerAlarmWrite(hw_timer, 1000000, true);
-	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
+	// hw_timer = timerBegin(0, 80, true);
+	// timerAlarmWrite(hw_timer, 1000000, true);
+	// timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
 }
 
 void loop()
 {
-	int update;
-	if (xQueueReceive(timer->display_queue, &update, portMAX_DELAY))
-	{
-		translator->update_timer_display(timer->seconds_counter);
-	}
+	// int update;
+	// if (xQueueReceive(timer->display_queue, &update, portMAX_DELAY))
+	//{
+	//	translator->update_timer_display(timer->seconds_counter);
+	// }
+
+	display->update_display(0, '0');
+	delay(5000);
+	display->update_display(0, '1');
+	delay(5000);
+	display->update_display(0, '2');
+	delay(5000);
+	display->update_display(0, '3');
+	delay(5000);
+	display->update_display(0, '4');
+	delay(5000);
+	display->update_display(0, '5');
+	delay(5000);
+	display->update_display(0, '6');
+	delay(5000);
+	display->update_display(0, '7');
+	delay(5000);
+	display->update_display(0, '8');
+	delay(5000);
+	display->update_display(0, '9');
+	delay(5000);
 }

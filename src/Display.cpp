@@ -15,7 +15,7 @@ std::array<bool, 7> Display::Digit::render_digit(unsigned char digit_to_render)
 
     for (int i = 0; i < 7; i++)
     {
-        segment_states[i] = (segments[i] & digit_segment_mappings[digit_to_render]);
+        segment_states[i] = (segments[i] & digit_segment_mappings[digit_to_render]) != 0;
     }
     return segment_states;
 }
@@ -30,14 +30,14 @@ void Display::update_display(int position, unsigned char number_to_render)
     std::array<uint8_t, 28> led_range = digits[position].led_range;
     std::array<bool, 7> segments = digits[position].render_digit(number_to_render);
     
-    this->digits[position].current_value = number_to_render;
+    //this->digits[position].current_value = number_to_render;
 
     for (int i = 0; i < 7; i++)
     {
         bool segment_state = segments[i];
-        for (int j = 0; j < 4; j++)
+        for (int j = 0; j < 3; j++)
         {
-            int led_index = led_range[i * 4 + j];
+            int led_index = led_range[i * 3 + j];
             if (segment_state)
             {
                 leds[led_index] = CRGB::Red;

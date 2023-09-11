@@ -60,7 +60,7 @@ void Menu::rotate_menu(Menu::direction direction)
     switch (direction)
     {
     case Menu::direction::UP:
-        display->update_display() break;
+      //  display->update_display() break;
     case Menu::direction::DOWN:
         break;
     }

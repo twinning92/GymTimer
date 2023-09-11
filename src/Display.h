@@ -1,7 +1,7 @@
 #pragma once
 #include <FastLED.h>
 
-#define NUM_LEDS 170
+#define NUM_LEDS 28
 #define LED_OFFSET 28
 
 #define DATA_PIN 3
@@ -30,13 +30,13 @@ public:
             0b0111101, // E
         };
         const unsigned char segments[7] = {        //      E           
-            0b10000000,  // A                             ----
-            0b01000000,  // B                          D |    | F
-            0b00100000,  // C                            | G  |
-            0b00010000,  // D                             ----
-            0b00001000,  // E                          C |    | A
-            0b00000100,  // F                            |  B |
-            0b00000010}; // G                             ----
+            0b00000001, // G                             ----
+            0b00000010,  // F                            |  B |
+            0b00000100,  // E                          C |    | A
+            0b00001000,  // D                             ----
+            0b00010000,  // C                            | G  |
+            0b00100000,  // B                          D |    | F
+            0b01000000};  // A                             ----
 
     public:
         Digit(uint8_t start_index);
