@@ -42,7 +42,7 @@ public:
         Digit(uint8_t start_index);
         std::array<uint8_t, 28> led_range;
         unsigned char current_value;
-        std::array<bool, 7> render_digit(unsigned char digit_to_render);
+        std::array<bool, 7> render_digit(char* digit_to_render);
     };
 
 
@@ -50,7 +50,8 @@ public:
     CRGB leds[NUM_LEDS];
 
     Display();
-    void update_display(int position, unsigned char number_to_render);
+    void update_display(int position, char number_to_render);
+    void update_segments(int position, int segment, bool value);
     void clear_display();
 };
 

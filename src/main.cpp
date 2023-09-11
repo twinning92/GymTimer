@@ -31,24 +31,8 @@ void loop()
 	//	translator->update_timer_display(timer->seconds_counter);
 	// }
 
-	display->update_display(0, '0');
-	delay(5000);
-	display->update_display(0, '1');
-	delay(5000);
-	display->update_display(0, '2');
-	delay(5000);
-	display->update_display(0, '3');
-	delay(5000);
-	display->update_display(0, '4');
-	delay(5000);
-	display->update_display(0, '5');
-	delay(5000);
-	display->update_display(0, '6');
-	delay(5000);
-	display->update_display(0, '7');
-	delay(5000);
-	display->update_display(0, '8');
-	delay(5000);
-	display->update_display(0, '9');
-	delay(5000);
+	for(int i =0; i < 7; i++){
+		display->update_segments(0, i, true);
+		delay(2500);
+	}
 }
