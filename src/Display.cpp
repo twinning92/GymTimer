@@ -24,7 +24,8 @@ std::array<bool, 7> Display::Digit::render_digit(char* digit_to_render)
 
 Display::Display() : digits{Digit(0 * LED_OFFSET),Digit(1 * LED_OFFSET),Digit(2 * LED_OFFSET),Digit(3 * LED_OFFSET),Digit(4 * LED_OFFSET),Digit(5 * LED_OFFSET)}
 {
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); // GRB ordering is assumed    
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); // GRB ordering is assumed 
+    FastLED.setBrightness(255);   
 }
 
 void Display::update_display(int position, char number_to_render)
@@ -32,24 +33,24 @@ void Display::update_display(int position, char number_to_render)
     std::array<uint8_t, 28> led_range = digits[position].led_range;
     std::array<bool, 7> segments = digits[position].render_digit(&number_to_render);
     
-    //this->digits[position].current_value = number_to_render;
-
-    for (int i = 0; i < 7; i++)
+    for (int segment_index = 0; segment_index < 7; segment_index++)
     {
-        bool segment_state = segments[i];
-        for (int j = 0; j < 3; j++)
+        bool segment_state = segments[segment_index];
+
+        for (int led_index_in_segment = 0; led_index_in_segment < 3; led_index_in_segment++)
         {
-            int led_index = led_range[i * 3 + j];
+            int absolute_led_index = led_range[segment_index * 3 + led_index_in_segment];
             if (segment_state)
             {
-                leds[led_index] = CRGB::Red;
+                leds[absolute_led_index] = CRGB::Red;
             }
             else
             {
-                leds[led_index] = CRGB::Black;
+                leds[absolute_led_index] = CRGB::Black;
             }
         }
     }
+    
     FastLED.show();
 }
 
