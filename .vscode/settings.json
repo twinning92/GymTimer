@@ -52,5 +52,6 @@
         "chrono": "cpp",
         "ratio": "cpp",
         "queue": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

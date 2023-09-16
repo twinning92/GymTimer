@@ -10,20 +10,31 @@ Display *display;
 
 void setup()
 {
-	timer = Timer::getInstance();
+	Serial.begin(115200);
 	display = new Display();
 
 	hw_timer = timerBegin(0, 80, true);
 	timerAlarmWrite(hw_timer, 1000000, true);
 	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
+	timerAlarmEnable(hw_timer);
+	timer = Timer::getInstance();
 }
 
 void loop()
 {
-	volatile int update;
-	// if (xQueueReceive(timer->display_queue, &update, portMAX_DELAY))
-	//{
-	//	translator->update_timer_display(timer->seconds_counter);
+	// volatile int update;
+	// if (xQueueReceive(timer->display_queue, (void *) &update, portMAX_DELAY))
+	// {
+	// 	display->update_display(0, update);
 	// }
 
+for (int i = 0; i < 14; i++){
+	display->update_display(0, i);
+	Serial.println(i);
+	delay(500);
+	display->clear_display();
+	delay(500);
+    Serial.print("Display digit: ");
+
+}
 }

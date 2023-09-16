@@ -15,7 +15,7 @@ public:
     class Digit
     {
     private:
-        const unsigned char digit_segment_mappings[14] = {
+        const uint8_t digit_segment_mappings[14] = {
             0b01111110, // 0
             0b01000010, // 1
             0b00110111, // 2
@@ -31,7 +31,7 @@ public:
             0b01111001, // b
             0b00111101, // E
         };
-        const unsigned char segments[7] = {              
+        const uint8_t segments[7] = {              
             0b01000000,  // A                      
             0b00100000,  // B                      
             0b00010000,  // C                      
@@ -44,10 +44,10 @@ public:
                                                    
 
     public:
-        Digit(uint8_t start_index);
-        std::array<uint8_t, LEDS_PER_DIGIT> led_range;
+        Digit(uint16_t start_index);
+        std::array<uint16_t, LEDS_PER_DIGIT> led_range;
         unsigned char current_value;
-        std::array<bool, NUM_SEGMENTS> render_digit(char* digit_to_render);
+        std::array<bool, NUM_SEGMENTS> render_digit(uint8_t digit_to_render);
     };
 
 
@@ -55,8 +55,8 @@ public:
     CRGB leds[NUM_LEDS];
 
     Display();
-    void update_display(int position, char number_to_render);
-    void update_segments(int position, int segment, bool value);
+    void update_display(uint8_t position, uint8_t number_to_render);
+    void update_segments(uint8_t position, uint8_t segment, bool value);
     void clear_display();
 };
 

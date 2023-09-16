@@ -14,6 +14,7 @@ private:
 
 public:
 	static unsigned int seconds_counter;
+	static unsigned int test_counter;
 
 	unsigned int work_seconds;
 	unsigned int rest_seconds;

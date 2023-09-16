@@ -1,6 +1,6 @@
 #include "Display.h"
 
-Display::Digit::Digit(uint8_t start_index)
+Display::Digit::Digit(uint16_t start_index)
 {
     for (int i = 0; i < LEDS_PER_DIGIT; i++)
     {
@@ -8,17 +8,14 @@ Display::Digit::Digit(uint8_t start_index)
     }
 }
 
-std::array<bool, NUM_SEGMENTS> Display::Digit::render_digit(char* digit_to_render)
+std::array<bool, NUM_SEGMENTS> Display::Digit::render_digit(uint8_t digit_to_render)
 {
     std::array<bool, NUM_SEGMENTS> segment_states;
-    this->current_value = *digit_to_render;
+    this->current_value = digit_to_render;
 
-    // TODO: This is converting char to in, how to do this better with alpha-numerics?
-    int int_to_render = std::atoi(digit_to_render);
-
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < NUM_SEGMENTS; i++)
     {
-        segment_states[i] = (segments[i] & digit_segment_mappings[int_to_render]) != 0;
+        segment_states[i] = (segments[i] & digit_segment_mappings[digit_to_render]) != 0;
     }
     return segment_states;
 }
@@ -26,15 +23,15 @@ std::array<bool, NUM_SEGMENTS> Display::Digit::render_digit(char* digit_to_rende
 Display::Display() : digits{Digit(0 * LEDS_PER_DIGIT),Digit(1 * LEDS_PER_DIGIT),Digit(2 * LEDS_PER_DIGIT),Digit(3 * LEDS_PER_DIGIT),Digit(4 * LEDS_PER_DIGIT),Digit(5 * LEDS_PER_DIGIT)}
 {
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); // GRB ordering is assumed 
-    FastLED.setBrightness(255);   
+    FastLED.setBrightness(50);   
 }
 
 
 
-void Display::update_display(int position, char number_to_render)
+void Display::update_display(uint8_t position, uint8_t number_to_render)
 {
-    std::array<uint8_t, LEDS_PER_DIGIT> led_range = digits[position].led_range;
-    std::array<bool, NUM_SEGMENTS> segments = digits[position].render_digit(&number_to_render);
+    std::array<uint16_t, LEDS_PER_DIGIT> led_range = digits[position].led_range;
+    std::array<bool, NUM_SEGMENTS> segments = digits[position].render_digit(number_to_render);
     
     for (int segment_index = 0; segment_index < NUM_SEGMENTS; segment_index++)
     {
@@ -53,14 +50,13 @@ void Display::update_display(int position, char number_to_render)
             }
         }
     }
-    
     FastLED.show();
 }
 
 // Trouble shooting function to isolate a specific segement.
-void Display::update_segments(int position, int segment, bool value)
+void Display::update_segments(uint8_t position, uint8_t segment, bool value)
 {
-    std::array<uint8_t, LEDS_PER_DIGIT> led_range = digits[position].led_range;
+    std::array<uint16_t, LEDS_PER_DIGIT> led_range = digits[position].led_range;
     std::array<bool, NUM_SEGMENTS> segments;
 
     for (int i = 0; i < NUM_SEGMENTS; i++){
