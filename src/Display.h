@@ -1,8 +1,10 @@
 #pragma once
 #include <FastLED.h>
 
-#define NUM_LEDS 28
-#define LED_OFFSET 28
+#define NUM_LEDS 336
+#define NUM_SEGMENTS 7
+#define LEDS_PER_DIGIT NUM_LEDS / 6
+#define LEDS_PER_SEGMENT LEDS_PER_DIGIT / NUM_SEGMENTS
 
 #define DATA_PIN 3
 
@@ -43,9 +45,9 @@ public:
 
     public:
         Digit(uint8_t start_index);
-        std::array<uint8_t, 28> led_range;
+        std::array<uint8_t, LEDS_PER_DIGIT> led_range;
         unsigned char current_value;
-        std::array<bool, 7> render_digit(char* digit_to_render);
+        std::array<bool, NUM_SEGMENTS> render_digit(char* digit_to_render);
     };
 
 

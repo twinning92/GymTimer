@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "Timer.h"
 #include "Display.h"
-#include "Translator.h"
 
 #define IR_RECEIVER_PIN 13
 
@@ -21,7 +20,7 @@ void setup()
 
 void loop()
 {
-	// int update;
+	volatile int update;
 	// if (xQueueReceive(timer->display_queue, &update, portMAX_DELAY))
 	//{
 	//	translator->update_timer_display(timer->seconds_counter);

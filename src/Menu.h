@@ -7,11 +7,10 @@
 class Menu
 {
 public:
-    Display &display;
     Program programs[NUM_PROGRAMS];
     Program selected_program;
 
-    Menu(Display &display);
+    Menu();
     void select_program();
     void cycle_menu();
 };
