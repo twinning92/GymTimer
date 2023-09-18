@@ -16,7 +16,7 @@ void setup()
 	hw_timer = timerBegin(0, 80, true);
 	timerAlarmWrite(hw_timer, 1000000, true);
 	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
-	timerAlarmEnable(hw_timer);
+	// timerAlarmEnable(hw_timer);
 	timer = Timer::getInstance();
 }
 
@@ -27,14 +27,13 @@ void loop()
 	// {
 	// 	display->update_display(0, update);
 	// }
+	for (int i = 0; i < 14; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
 
-for (int i = 0; i < 14; i++){
-	display->update_display(0, i);
-	Serial.println(i);
-	delay(500);
-	display->clear_display();
-	delay(500);
-    Serial.print("Display digit: ");
-
-}
+			display->update_display(j, i);
+		}
+		delay(500);
+	}
 }

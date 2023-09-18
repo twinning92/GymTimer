@@ -20,19 +20,24 @@ std::array<bool, NUM_SEGMENTS> Display::Digit::render_digit(uint8_t digit_to_ren
     return segment_states;
 }
 
-Display::Display() : digits{Digit(0 * LEDS_PER_DIGIT),Digit(1 * LEDS_PER_DIGIT),Digit(2 * LEDS_PER_DIGIT),Digit(3 * LEDS_PER_DIGIT),Digit(4 * LEDS_PER_DIGIT),Digit(5 * LEDS_PER_DIGIT)}
+Display::Display() : digits{Digit(0 * LEDS_PER_DIGIT), Digit(1 * LEDS_PER_DIGIT), Digit(2 * LEDS_PER_DIGIT), Digit(3 * LEDS_PER_DIGIT), Digit(4 * LEDS_PER_DIGIT), Digit(5 * LEDS_PER_DIGIT)}
 {
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); // GRB ordering is assumed 
-    FastLED.setBrightness(50);   
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); // GRB ordering is assumed
+    FastLED.setBrightness(50);
 }
-
-
 
 void Display::update_display(uint8_t position, uint8_t number_to_render)
 {
     std::array<uint16_t, LEDS_PER_DIGIT> led_range = digits[position].led_range;
     std::array<bool, NUM_SEGMENTS> segments = digits[position].render_digit(number_to_render);
-    
+    Serial.print("position: ");
+    Serial.print(position);
+    Serial.print(" value: ");
+    Serial.print(number_to_render);
+    Serial.print(" start index: ");
+    Serial.print(led_range[0]);
+
+    Serial.println();
     for (int segment_index = 0; segment_index < NUM_SEGMENTS; segment_index++)
     {
         bool segment_state = segments[segment_index];
@@ -43,10 +48,14 @@ void Display::update_display(uint8_t position, uint8_t number_to_render)
             if (segment_state)
             {
                 leds[absolute_led_index] = CRGB::Red;
+                Serial.print(" On: absolute index: ");
+                Serial.println(absolute_led_index);
             }
             else
             {
                 leds[absolute_led_index] = CRGB::Black;
+                Serial.print(" Off: absolute index: ");
+                Serial.println(absolute_led_index);
             }
         }
     }
@@ -59,7 +68,8 @@ void Display::update_segments(uint8_t position, uint8_t segment, bool value)
     std::array<uint16_t, LEDS_PER_DIGIT> led_range = digits[position].led_range;
     std::array<bool, NUM_SEGMENTS> segments;
 
-    for (int i = 0; i < NUM_SEGMENTS; i++){
+    for (int i = 0; i < NUM_SEGMENTS; i++)
+    {
         segments[i] = false;
     }
 
@@ -83,7 +93,6 @@ void Display::update_segments(uint8_t position, uint8_t segment, bool value)
     }
     FastLED.show();
 }
-
 
 void Display::clear_display()
 {
