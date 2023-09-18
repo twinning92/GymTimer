@@ -46,7 +46,7 @@ public:
     public:
         Digit(uint16_t start_index);
         std::array<uint16_t, LEDS_PER_DIGIT> led_range;
-        unsigned char current_value;
+        uint8_t current_value;
         std::array<bool, NUM_SEGMENTS> render_digit(uint8_t digit_to_render);
     };
 

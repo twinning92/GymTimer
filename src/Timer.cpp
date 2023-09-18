@@ -4,7 +4,6 @@
 Timer *Timer::instance = nullptr;
 QueueHandle_t Timer::display_queue = nullptr;
 unsigned int Timer::seconds_counter = 0;
-unsigned int Timer::test_counter = 0;
 
 
 Timer::Timer(){
@@ -22,11 +21,15 @@ Timer *Timer::getInstance()
     return instance;
 }
 
+void Timer::set_seconds_counter(uint8_t hours, uint8_t minutes, uint8_t seconds)
+    {
+        seconds_counter = hours * 3600 + minutes * 60 + seconds;
+    }
+
 void IRAM_ATTR Timer::on_timer()
 {
-    test_counter = seconds_counter % 10;
-
-    xQueueSendFromISR(display_queue, &test_counter, NULL);
+    bool update_received = true;
+    xQueueSendFromISR(display_queue, &update_received, NULL);
     Serial.println("Interupt!");
     seconds_counter++;
 

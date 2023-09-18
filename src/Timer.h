@@ -14,7 +14,6 @@ private:
 
 public:
 	static unsigned int seconds_counter;
-	static unsigned int test_counter;
 
 	unsigned int work_seconds;
 	unsigned int rest_seconds;
@@ -30,6 +29,8 @@ public:
 	void set_work_seconds(unsigned int work_seconds);
 	void set_rest_seconds(unsigned int rest_seconds);
 	void set_number_rounds(unsigned int num_rounds);
+	// TODO: Consider a class or something smarter than doing this.
+	static void set_seconds_counter(uint8_t hours, uint8_t minutes, uint8_t seconds);
 
 	unsigned int get_seconds(){
 		return seconds_counter;
