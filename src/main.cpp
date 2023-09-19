@@ -19,7 +19,7 @@ void setup()
 	hw_timer = timerBegin(0, 80, true);
 	timerAlarmWrite(hw_timer, 1000000, true);
 	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
-	// timerAlarmEnable(hw_timer);
+	timerAlarmEnable(hw_timer);
 	timer = Timer::getInstance();
 	
 	// Init the clock with the GPS time, but for now... setting the inital time values to 10:45:15.
