@@ -55,6 +55,7 @@ public:
     CRGB leds[NUM_LEDS];
 
     Display();
+    void push_to_display();
     void update_display(uint8_t position, uint8_t number_to_render);
     void update_segments(uint8_t position, uint8_t segment, bool value);
     void clear_display();

@@ -59,7 +59,6 @@ void Display::update_display(uint8_t position, uint8_t number_to_render)
             }
         }
     }
-    FastLED.show();
 }
 
 // Trouble shooting function to isolate a specific segement.
@@ -92,6 +91,11 @@ void Display::update_segments(uint8_t position, uint8_t segment, bool value)
         }
     }
     FastLED.show();
+}
+
+void Display::push_to_display()
+{
+        FastLED.show();
 }
 
 void Display::clear_display()
