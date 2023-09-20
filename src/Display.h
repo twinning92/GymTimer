@@ -1,10 +1,9 @@
 #pragma once
 #include <FastLED.h>
 
-#define NUM_LEDS 336
+#define NUM_LEDS 354
 #define NUM_SEGMENTS 7
-#define LEDS_PER_DIGIT NUM_LEDS / 6
-#define LEDS_PER_SEGMENT LEDS_PER_DIGIT / NUM_SEGMENTS
+#define LEDS_PER_DIGIT 59 / 6
 
 #define DATA_PIN 3
 
@@ -14,6 +13,23 @@ class Display
 public:
     class Digit
     {
+
+    public:
+        class Segment
+        {
+            public:
+                Segment(char designator, uint8_t size, uint8_t segment_mask);
+                uint8_t num_leds_per_segment;
+                uint8_t segment_mask;
+                char segment_designator;
+        };
+        Digit(uint16_t start_index);
+        Display::Digit::Segment segment[7];
+        uint8_t current_value;
+
+        std::array<uint16_t, LEDS_PER_DIGIT> led_range;
+        std::array<bool, NUM_SEGMENTS> render_digit(uint8_t digit_to_render);
+
     private:
         const uint8_t digit_segment_mappings[14] = {
             0b01111110, // 0
@@ -31,30 +47,13 @@ public:
             0b01111001, // b
             0b00111101, // E
         };
-        const uint8_t segments[7] = {              
-            0b01000000,  // A                      
-            0b00100000,  // B                      
-            0b00010000,  // C                      
-            0b00001000,  // D                      
-            0b00000100,  // E                      
-            0b00000010,  // F                      
-            0b00000001,  // G
-            };
-                           
-                                                   
-
-    public:
-        Digit(uint16_t start_index);
-        std::array<uint16_t, LEDS_PER_DIGIT> led_range;
-        uint8_t current_value;
-        std::array<bool, NUM_SEGMENTS> render_digit(uint8_t digit_to_render);
     };
 
-
-    Display::Digit digits[6];
-    CRGB leds[NUM_LEDS];
+        Display::Digit digits[6];
+        CRGB leds[NUM_LEDS];
 
     Display();
+
     void push_to_display();
     void update_display(uint8_t position, uint8_t number_to_render);
     void update_segments(uint8_t position, uint8_t segment, bool value);
