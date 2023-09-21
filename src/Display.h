@@ -13,24 +13,32 @@ class Display
 public:
     class Digit
     {
-
     public:
-        class Segment
-        {
-            public:
-                Segment(char designator, uint8_t size, uint8_t segment_mask);
-                uint8_t num_leds_per_segment;
-                uint8_t segment_mask;
-                char segment_designator;
-        };
-        Digit(uint16_t start_index);
-        Display::Digit::Segment segment[7];
-        uint8_t current_value;
-
-        std::array<uint16_t, LEDS_PER_DIGIT> led_range;
-        std::array<bool, NUM_SEGMENTS> render_digit(uint8_t digit_to_render);
+        Digit(CRGB& leds, uint16_t start_index);
+        void update_digit(uint8_t digit_to_render);
+        void show_digit(bool on);
 
     private:
+        class Segment
+        {
+        public:
+            Segment(CRGB& leds, char designator, uint8_t size, uint16_t segment_led_offset);
+            Segment() = default;
+            void update_segment(bool on, CRGB colour);
+
+        private:
+            char segment_designator;
+            uint8_t num_leds_per_segment;
+            uint16_t segment_led_offset; // index of the zeroth segment led in the entire led strip.
+            CRGB& leds;
+        };
+
+        Display::Digit::Segment segments[7];
+        uint8_t current_value;
+        uint16_t digit_led_offset;
+
+
+        // TODO: talk to chat gpt about how to make this a global table.
         const uint8_t digit_segment_mappings[14] = {
             0b01111110, // 0
             0b01000010, // 1
@@ -49,15 +57,14 @@ public:
         };
     };
 
-        Display::Digit digits[6];
-        CRGB leds[NUM_LEDS];
-
+public:
     Display();
-
     void push_to_display();
     void update_display(uint8_t position, uint8_t number_to_render);
-    void update_segments(uint8_t position, uint8_t segment, bool value);
-    void clear_display();
+
+private:
+    Display::Digit digits[6];
+    CRGB leds[NUM_LEDS];
 };
 
 /*
