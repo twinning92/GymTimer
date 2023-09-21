@@ -14,7 +14,7 @@ public:
     class Digit
     {
     public:
-        Digit(CRGB& leds, uint16_t start_index);
+        Digit(CRGB* leds, uint16_t start_index);
         void update_digit(uint8_t digit_to_render);
         void show_digit(bool on);
 
@@ -22,21 +22,20 @@ public:
         class Segment
         {
         public:
-            Segment(CRGB& leds, char designator, uint8_t size, uint16_t segment_led_offset);
+            Segment(CRGB* leds, char designator, uint8_t size, uint16_t segment_led_offset);
             Segment() = default;
-            void update_segment(bool on, CRGB colour);
+            void update_segment(bool on);
 
         private:
             char segment_designator;
             uint8_t num_leds_per_segment;
             uint16_t segment_led_offset; // index of the zeroth segment led in the entire led strip.
-            CRGB& leds;
+            CRGB* leds;
         };
 
         Display::Digit::Segment segments[7];
         uint8_t current_value;
         uint16_t digit_led_offset;
-
 
         // TODO: talk to chat gpt about how to make this a global table.
         const uint8_t digit_segment_mappings[14] = {

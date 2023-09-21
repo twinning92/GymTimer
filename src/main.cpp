@@ -34,9 +34,9 @@ void loop()
 	{
 		// display->update_display(0, update);
 		translator->update_clock_display(timer->seconds_counter);
-		update_queued = false;
-		Serial.print("Seconds elapsed: ");
-		Serial.println(timer->seconds_counter);
+		// update_queued = false;
+		// Serial.print("Seconds elapsed: ");
+		// Serial.println(timer->seconds_counter);
 	}
 
 // for (int i = 0; i < 14; i++){
