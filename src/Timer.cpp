@@ -9,7 +9,6 @@ unsigned int Timer::seconds_counter = 0;
 Timer::Timer(){
     display_queue = xQueueCreate(10, sizeof(int));
     this->instance = nullptr;
-    Serial.println("Constructing Timer!");
 };
 
 Timer *Timer::getInstance()
@@ -30,7 +29,6 @@ void IRAM_ATTR Timer::on_timer()
 {
     bool update_received = true;
     xQueueSendFromISR(display_queue, &update_received, NULL);
-    Serial.println("Interupt!");
     seconds_counter++;
 
     // TODO: Change it so the final rest period doesn't run.

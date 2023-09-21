@@ -1,6 +1,6 @@
-#include "Translator.h"
+#include "Clock.h"
 
-void Translator::update_clock_display(int total_seconds_elapsed)
+void Clock::update_clock_display(int total_seconds_elapsed)
 {
 
     display->update_display(0, total_seconds_elapsed % 10);

@@ -1,9 +1,9 @@
 #pragma once
 #include <FastLED.h>
 
-#define NUM_LEDS 354
+#define NUM_LEDS 8 * 7 * 6
 #define NUM_SEGMENTS 7
-#define LEDS_PER_DIGIT 59 / 6
+#define LEDS_PER_DIGIT 8 * 7
 
 #define DATA_PIN 3
 
@@ -17,20 +17,24 @@ public:
         Digit(CRGB* leds, uint16_t start_index);
         void update_digit(uint8_t digit_to_render);
         void show_digit(bool on);
+        void trouble();
 
     private:
         class Segment
         {
         public:
-            Segment(CRGB* leds, char designator, uint8_t size, uint16_t segment_led_offset);
+            Segment(CRGB *leds, char designator, uint8_t size, uint16_t start_index, uint8_t segment_led_mask);
             Segment() = default;
             void update_segment(bool on);
+            void trouble();
+            char segment_designator;
+            uint8_t segment_led_mask;
 
         private:
-            char segment_designator;
+            CRGB *leds;
             uint8_t num_leds_per_segment;
-            uint16_t segment_led_offset; // index of the zeroth segment led in the entire led strip.
-            CRGB* leds;
+            uint16_t start_index;
+            
         };
 
         Display::Digit::Segment segments[7];
@@ -60,6 +64,8 @@ public:
     Display();
     void push_to_display();
     void update_display(uint8_t position, uint8_t number_to_render);
+    void clear_display();
+    void trouble();
 
 private:
     Display::Digit digits[6];
