@@ -23,7 +23,7 @@ void setup()
 	timer = Timer::getInstance();
 
 	// Init the clock with the GPS time, but for now... setting the inital time values to 10:45:15.
-	timer->set_seconds_counter(10, 45, 15);
+	timer->set_seconds_counter(23, 59, 50);
 }
 
 void loop()
