@@ -1,6 +1,6 @@
 {
     "files.associations": {
-        "diyables_ircontroller.h": "c",
+        "cstring": "cpp",
         "array": "cpp",
         "atomic": "cpp",
         "*.tcc": "cpp",
@@ -12,7 +12,6 @@
         "cstdint": "cpp",
         "cstdio": "cpp",
         "cstdlib": "cpp",
-        "cstring": "cpp",
         "ctime": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
@@ -48,10 +47,6 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp",
-        "chrono": "cpp",
-        "ratio": "cpp",
-        "queue": "cpp"
-    },
-    "cmake.configureOnOpen": false
+        "typeinfo": "cpp"
+    }
 }

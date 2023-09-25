@@ -7,99 +7,74 @@
 
 #define DATA_PIN 3
 
+class Segment
+{
+public:
+    Segment(CRGB *leds, char designator, uint8_t size, uint16_t start_index, uint8_t segment_led_mask);
+    void update_segment(bool on, CRGB colour);
+    uint8_t segment_led_mask;
+
+private:
+    Segment() = default;
+    CRGB *leds;
+    uint8_t num_leds_per_segment;
+    uint16_t start_index;
+    char segment_designator;
+};
+
+class Digit
+{
+public:
+    Digit(CRGB *leds, uint16_t start_index);
+    void update_digit(uint8_t digit_to_render, CRGB colour);
+    void show_digit(bool on);
+
+private:
+    Segment segments[7];
+    uint8_t current_value;
+    uint16_t digit_led_offset;
+
+    // TODO: talk to chat gpt about how to make this a global table.
+    const uint8_t digit_segment_mappings[23] = {
+        0b01111110, // 0 0
+        0b01000010, // 1 1
+        0b00110111, // 2 2
+        0b01100111, // 3 3
+        0b01001011, // 4 4
+        0b01101101, // 5 5
+        0b01111101, // 6 6
+        0b01000110, // 7 7
+        0b01111111, // 8 8
+        0b01101111, // 9 9
+        0b01011111, // A 10
+        0b01111001, // b 11
+        0b00110001, // c 12
+        0b01110011, // d 13
+        0b00111101, // E 14
+        0b01010001, // n 15
+        0b01110001, // o 16
+        0b00010001, // r 17
+        0b00111001, // t 18
+        0b01000010, // l,i 19
+        0b00011101, // F 20
+        0b01110000, // u 21
+        0b00011111, // P 22
+    };
+};
+
 class Display
 {
-
-public:
-    class Digit
-    {
-    public:
-        Digit(CRGB* leds, uint16_t start_index);
-        void update_digit(uint8_t digit_to_render);
-        void show_digit(bool on);
-        void trouble();
-
-    private:
-        class Segment
-        {
-        public:
-            Segment(CRGB *leds, char designator, uint8_t size, uint16_t start_index, uint8_t segment_led_mask);
-            Segment() = default;
-            void update_segment(bool on);
-            void trouble();
-            char segment_designator;
-            uint8_t segment_led_mask;
-
-        private:
-            CRGB *leds;
-            uint8_t num_leds_per_segment;
-            uint16_t start_index;
-            
-        };
-
-        Display::Digit::Segment segments[7];
-        uint8_t current_value;
-        uint16_t digit_led_offset;
-
-        // TODO: talk to chat gpt about how to make this a global table.
-        const uint8_t digit_segment_mappings[14] = {
-            0b01111110, // 0
-            0b01000010, // 1
-            0b00110111, // 2
-            0b01100111, // 3
-            0b01001011, // 4
-            0b01101101, // 5
-            0b01111101, // 6
-            0b01000110, // 7
-            0b01111111, // 8
-            0b01101111, // 9
-            0b00111001, // t
-            0b01011111, // A
-            0b01111001, // b
-            0b00111101, // E
-        };
-    };
-
 public:
     Display();
     void push_to_display();
+    void write_string(const std::string, uint8_t length, CRGB colour);
+    void convert_to_display(const unsigned int total_seconds);
     void update_display(uint8_t position, uint8_t number_to_render);
+    void update_display(uint8_t position, uint8_t number_to_render, CRGB colour);
+    void clear_digit(uint8_t position);
     void clear_display();
-    void trouble();
 
 private:
-    Display::Digit digits[6];
+    Digit digits[6];
     CRGB leds[NUM_LEDS];
 };
-
-/*
-
-A	 B	  C	   D    E    F    G
-1111 1111 1111 1111 1111 1111 0000	// 0
-
-1111 0000 0000 0000 0000 0000 1111  // 1
-
-0000 1111 1111 0000 1111 1111 1111  // 2
-
-1111 1111 0000 0000 1111 1111 1111  // 3
-
-1111 0000 0000 1111 0000 1111 1111  // 4
-
-1111 1111 0000 1111 1111 0000 1111  // 5
-
-1111 1111 1111 1111 1111 0000 1111  // 6
-
-1111 0000 0000 0000 1111 1111 0000  // 7
-
-1111 1111 1111 1111 1111 1111 1111  // 8
-
-1111 1111 0000 1111 1111 1111 1111  // 9
-
-0000 1111 1111 1111 0000 0000 1111  // t
-
-1111 0000 1111 1111 1111 1111 1111  // A
-
-1111 1111 1111 1111 0000 0000 1111  // b
-
-0000 1111 1111 1111 1111 0000 1111  // E
-*/

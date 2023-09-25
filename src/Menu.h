@@ -1,16 +1,13 @@
 #pragma once
-#include "Display.h"
-#include "Program.h"
-
-#define NUM_PROGRAMS 4
+#include "Countdown_Round.h"
 
 class Menu
 {
 public:
-    Program programs[NUM_PROGRAMS];
-    Program selected_program;
-
     Menu();
-    void select_program();
-    void cycle_menu();
+    const char* get_program_string(uint8_t program_index);
+    Program* select_program(uint8_t program_index);
+
+    std::array<Program *, 4> programs;
+private:
 };

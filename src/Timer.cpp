@@ -5,8 +5,8 @@ Timer *Timer::instance = nullptr;
 QueueHandle_t Timer::display_queue = nullptr;
 unsigned int Timer::seconds_counter = 0;
 
-
-Timer::Timer(){
+Timer::Timer()
+{
     display_queue = xQueueCreate(10, sizeof(int));
     this->instance = nullptr;
 };
@@ -21,9 +21,9 @@ Timer *Timer::getInstance()
 }
 
 void Timer::set_seconds_counter(uint8_t hours, uint8_t minutes, uint8_t seconds)
-    {
-        seconds_counter = hours * 3600 + minutes * 60 + seconds;
-    }
+{
+    seconds_counter = hours * 3600 + minutes * 60 + seconds;
+}
 
 void IRAM_ATTR Timer::on_timer()
 {
@@ -51,36 +51,12 @@ void IRAM_ATTR Timer::on_timer()
     // }
 }
 
-void Timer::run_session(hw_timer_t *hw_timer)
+void Timer::start_timer(hw_timer_t *hw_timer)
 {
-    // if (instance->current_phase == Phase::HOLD)
-    // {
-    //     this->seconds_counter = 0;
-    //     this->current_phase = Phase::WORK;
-    //     timerAlarmEnable(hw_timer);
-    // }
+    timerAlarmEnable(hw_timer);
 }
 
-void Timer::end_session(hw_timer_t *hw_timer)
+void Timer::stop_timer(hw_timer_t *hw_timer)
 {
-    if (instance->current_phase != Phase::HOLD)
-    {
-        this->current_phase = Phase::HOLD;
-        timerAlarmDisable(hw_timer);
-    }
-}
-
-void Timer::set_work_seconds(unsigned int work_seconds)
-{
-    this->work_seconds = work_seconds;
-}
-
-void Timer::set_rest_seconds(unsigned int rest_seconds)
-{
-    this->rest_seconds = rest_seconds;
-}
-
-void Timer::set_number_rounds(unsigned int num_rounds)
-{
-    this->num_rounds = num_rounds;
+    timerAlarmDisable(hw_timer);
 }
