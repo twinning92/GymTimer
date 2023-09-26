@@ -101,10 +101,12 @@ void loop()
 			program_index == 0 ? program_index = menu->programs.size() : program_index--;
 			print_program_string(program_index);
 			break;
+
 		case IR_OK:
 			selected_program = menu->select_program(program_index);
 			struct Program::prog_params prog_params = selected_program->get_prog_params();
 			state = Function_State::CONFIGURING_PROGRAM;
+			
 		case IR_NULL:
 		default:
 			break;
@@ -131,7 +133,7 @@ void loop()
 		}
 		break;
 	case Function_State::READY_TO_START:
-		struct Program::prog_run prog_run = selected_program->get_running_info();
+		struct Program::program_display_info program_display_info = selected_program->get_display_info();
 		selected_program->start();
 		switch (ir_input.value)
 		{
@@ -148,7 +150,7 @@ void loop()
 		timer->start_timer(hw_timer);
 		if (xQueueReceive(timer->display_queue, (void *)&display_update_queued, portMAX_DELAY))
 		{
-			display->convert_to_display(timer->seconds_counter);
+			display->convert_to_display(selected_program->tick());
 			display->push_to_display();
 			if (selected_program->tick())
 			{

@@ -104,6 +104,12 @@ void Display::write_string(const std::string string, uint8_t length, CRGB colour
         case 'P':
             update_display(length - i, 22, colour);
             break;
+        case 'J':
+            update_display(length - i, 23, colour);
+            break;
+        case 'S':
+            update_display(length - i, 24, colour);
+            break;
         default:
             clear_digit(length - i);
             break;

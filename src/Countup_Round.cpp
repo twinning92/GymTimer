@@ -1,26 +1,8 @@
-#include "Countdown_Round.h"
+#include "Countup_Round.h"
 
-void Countdown_Round::set_prog_params()
+bool Countup_Round::tick()
 {
-    this->program_params.need_rounds = true;
-    this->program_params.need_work = true;
-    this->program_params.need_rest = false;
-}
-
-void Countdown_Round::set_prog_run()
-{
-    this->program_display_info.display_rounds = true;
-}
-
-/// @brief Sets phase to TEN_SECOND_START.
-void Countdown_Round::start()
-{
-    this->program_phase = Phase::TEN_SECOND_TO_START;
-}
-
-bool Countdown_Round::tick()
-{
-    bool finished = false;
+  bool finished = false;
     switch (this->program_phase)
     {
     case Phase::TEN_SECOND_TO_START:
@@ -40,7 +22,7 @@ bool Countdown_Round::tick()
         break;
     case Phase::WORK:
         this->program_display_info.currently_working = true;
-        this->program_display_info.seconds_value = work_seconds;
+        this->program_display_info.seconds_value = 0;
         this->program_display_info.rounds_remaining = this->num_rounds;
 
         this->work_seconds--;
@@ -62,5 +44,4 @@ bool Countdown_Round::tick()
         }
         break;
     }
-    return finished;
-}
+    return finished;}

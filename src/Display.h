@@ -35,7 +35,7 @@ private:
     uint16_t digit_led_offset;
 
     // TODO: talk to chat gpt about how to make this a global table.
-    const uint8_t digit_segment_mappings[23] = {
+    const uint8_t digit_segment_mappings[25] = {
         0b01111110, // 0 0
         0b01000010, // 1 1
         0b00110111, // 2 2
@@ -59,6 +59,8 @@ private:
         0b00011101, // F 20
         0b01110000, // u 21
         0b00011111, // P 22
+        0b01110010, // J 23
+        0b01101101, // S 24
     };
 };
 
