@@ -35,7 +35,7 @@ private:
     uint16_t digit_led_offset;
 
     // TODO: talk to chat gpt about how to make this a global table.
-    const uint8_t digit_segment_mappings[25] = {
+    const uint8_t digit_segment_mappings[28] = {
         0b01111110, // 0 0
         0b01000010, // 1 1
         0b00110111, // 2 2
@@ -61,6 +61,9 @@ private:
         0b00011111, // P 22
         0b01110010, // J 23
         0b01101101, // S 24
+        0b00000000, // " " 25
+        0b00100000, // "_" 26
+        0b00000001, // "-" 27
     };
 };
 
@@ -70,7 +73,7 @@ public:
     Display();
     void push_to_display();
     void write_string(const std::string, uint8_t length, CRGB colour);
-    void convert_to_display(const unsigned int total_seconds);
+    void convert_to_display(const unsigned int total_seconds, CRGB colour);
     void update_display(uint8_t position, uint8_t number_to_render);
     void update_display(uint8_t position, uint8_t number_to_render, CRGB colour);
     void clear_digit(uint8_t position);

@@ -110,6 +110,15 @@ void Display::write_string(const std::string string, uint8_t length, CRGB colour
         case 'S':
             update_display(length - i, 24, colour);
             break;
+        case ' ':
+            update_display(length - i, 25, colour);
+            break;
+        case '_':
+            update_display(length - i, 26, colour);
+            break;
+        case '-':
+            update_display(length - i, 27, colour);
+            break;
         default:
             clear_digit(length - i);
             break;
@@ -117,7 +126,7 @@ void Display::write_string(const std::string string, uint8_t length, CRGB colour
     }
 }
 
-void Display::convert_to_display(const unsigned int total_seconds)
+void Display::convert_to_display(const unsigned int total_seconds, CRGB colour)
 {
     uint8_t low_seconds = total_seconds % 10;
     uint8_t high_seconds = total_seconds / 10 % 6;
@@ -126,10 +135,10 @@ void Display::convert_to_display(const unsigned int total_seconds)
     uint8_t low_minutes = total_minutes % 10;
     uint8_t high_minutes = total_minutes / 10;
 
-    update_display(0, low_seconds);
-    update_display(1, high_seconds);
-    update_display(2, low_minutes);
-    update_display(3, high_minutes);
+    update_display(0, low_seconds, colour);
+    update_display(1, high_seconds, colour);
+    update_display(2, low_minutes, colour);
+    update_display(3, high_minutes, colour);
 }
 
 void Display::update_display(uint8_t position, uint8_t number_to_render)

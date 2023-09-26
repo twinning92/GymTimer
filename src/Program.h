@@ -1,22 +1,24 @@
 #pragma once
-#include <cstring>
+#include <Arduino.h>
+
 enum class Phase
 {
     TEN_SECOND_TO_START,
     WORK,
     REST,
-    FINISH,
+    FINISHED,
 };
 
 class Program
 {
 protected:
-    char program_name[6];
+    std::string program_name;
     uint8_t start_seconds = 10;
     uint16_t work_seconds;
     uint16_t rest_seconds;
     uint8_t num_rounds;
     Phase program_phase;
+    uint16_t elapsed_time = 0;
 
 public:
     struct prog_params
@@ -34,23 +36,23 @@ public:
         uint8_t rounds_remaining;
 
         uint16_t beep_milliseconds;
-        
+
         uint16_t seconds_value;
     };
     virtual void set_prog_params() = 0;
-    virtual void set_prog_run() = 0;
+    virtual void set_display_info() = 0;
     virtual struct prog_params get_prog_params() { return this->program_params; }
     virtual struct program_display_info get_display_info() { return this->program_display_info; }
     virtual void start() = 0;
     virtual bool tick() = 0;
 
-    const char *get_name() { return program_name; };
+    const std::string get_name() { return program_name; };
     enum Phase get_program_phase() { return program_phase; }
     void set_program_phase(enum Phase phase_) { this->program_phase = phase_; }
 
-    Program(const char *in_program_name)
+    Program(std::string program_name_)
     {
-        strncpy(program_name, in_program_name, 6);
+        program_name = program_name_;
     }
 
     virtual ~Program() = default;

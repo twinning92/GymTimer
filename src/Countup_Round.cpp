@@ -22,17 +22,18 @@ bool Countup_Round::tick()
         break;
     case Phase::WORK:
         this->program_display_info.currently_working = true;
-        this->program_display_info.seconds_value = 0;
+        this->program_display_info.seconds_value = elapsed_time;
         this->program_display_info.rounds_remaining = this->num_rounds;
 
-        this->work_seconds--;
-        if (work_seconds <= 3)
+        this->elapsed_time++;
+        if (work_seconds - elapsed_time <= 3)
         {
             this->program_display_info.beep = true;
             this->program_display_info.beep_milliseconds = 100;
         }
-        if (work_seconds == 0)
+        if (work_seconds == elapsed_time)
         {
+            elapsed_time = 0;
             this->program_display_info.beep_milliseconds = 300;
             this->program_display_info.beep = false;
             this->num_rounds--;

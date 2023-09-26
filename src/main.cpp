@@ -9,11 +9,11 @@
 
 // IR defines and setup
 #define IR_RECEIVER_PIN 13
-decode_results ir_input;
+IRData ir_input;
 IRrecv irrecv(IR_RECEIVER_PIN);
 QueueHandle_t IR_queue;
 
-#define IR_NULL 0
+#define IR_NIL 0
 #define IR_UP 1
 #define IR_DOWN 2
 #define IR_RIGHT 3
@@ -22,12 +22,6 @@ QueueHandle_t IR_queue;
 #define IR_BACK 6
 
 #define NUM_PROGRAMS 4
-
-hw_timer_t *hw_timer = nullptr;
-Timer *timer;
-Display *display;
-Menu *menu;
-Clock *clock_69;
 
 enum class Function_State
 {
@@ -38,21 +32,24 @@ enum class Function_State
 	RUNNING_TIMER,
 };
 
-Function_State state = Function_State::IDLE;
+hw_timer_t *hw_timer = nullptr;
+Timer *timer = nullptr;
+Display *display = nullptr;
+Menu *menu = nullptr;
+Clock *clock_69 = nullptr;
 
-uint8_t program_index = 0;
-std::string program_string;
-Program *selected_program = nullptr;
-struct Program::prog_params prog_params;
+Function_State state;
 
-int control_work_input();
+int control_work_input(CRGB colour);
 uint8_t control_round_input();
+void capture_ir_commands();
+void print_program_string(std::string program_index);
 
 void setup()
 {
 	pinMode(IR_RECEIVER_PIN, INPUT); // Set the IR receiver pin as input
 	irrecv.enableIRIn();
-	IR_queue = xQueueCreate(20, sizeof(decode_results));
+	IR_queue = xQueueCreate(20, sizeof(uint16_t));
 
 	Serial.begin(115200);
 	display = new Display();
@@ -65,6 +62,7 @@ void setup()
 	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
 	timerAlarmEnable(hw_timer);
 
+	state = Function_State::IDLE;
 	// Init the clock with the GPS time, but for now... setting the inital time values to 10:45:15.
 	timer->set_seconds_counter(23, 59, 50);
 }
@@ -72,45 +70,50 @@ void setup()
 void loop()
 {
 	// check IR Queue:
-	ir_input.value = IR_NULL;
+	ir_input.command = IR_NIL;
 	capture_ir_commands();
 	xQueueReceive(IR_queue, &ir_input, 10);
 
 	// check timer queue:
 	volatile bool update_display;
 	xQueueReceive(timer->display_queue, (void *)&update_display, portMAX_DELAY);
+	struct Program::prog_params prog_params;
+	struct Program::program_display_info program_display_info;
 
+	uint8_t program_index = 0;
+	std::string program_string;
+	Program *selected_program = nullptr;
 	switch (state)
 	{
 	case Function_State::IDLE:
 		clock_69->update_clock_display(timer->seconds_counter);
-		if (ir_input.value == IR_UP || ir_input.value == IR_DOWN)
+		if (ir_input.command == IR_UP || ir_input.command == IR_DOWN)
 		{
 			state = Function_State::NAVIGATING_MENU;
 		}
 		break;
 	case Function_State::NAVIGATING_MENU:
-		switch (ir_input.value)
+		switch (ir_input.command)
 		{
 		case IR_UP:
-			program_index == menu->programs.size() ? program_index = 0 : program_index++;
-			print_program_string(program_index);
+			program_index = (program_index == menu->programs.size()) ? program_index = 0 : program_index++;
+			print_program_string(menu->get_program_string(program_index));
 			break;
 
 		case IR_DOWN:
-			program_index == 0 ? program_index = menu->programs.size() : program_index--;
-			print_program_string(program_index);
+			program_index = (program_index == 0) ? program_index = menu->programs.size() : program_index--;
+			print_program_string(menu->get_program_string(program_index));
 			break;
 
 		case IR_OK:
 			selected_program = menu->select_program(program_index);
-			struct Program::prog_params prog_params = selected_program->get_prog_params();
+			prog_params = selected_program->get_prog_params();
 			state = Function_State::CONFIGURING_PROGRAM;
-			
-		case IR_NULL:
+
 		default:
 			break;
 		}
+		break;
 	case Function_State::CONFIGURING_PROGRAM:
 		if (prog_params.need_rounds)
 		{
@@ -133,9 +136,9 @@ void loop()
 		}
 		break;
 	case Function_State::READY_TO_START:
-		struct Program::program_display_info program_display_info = selected_program->get_display_info();
+		program_display_info = selected_program->get_display_info();
 		selected_program->start();
-		switch (ir_input.value)
+		switch (ir_input.command)
 		{
 		case IR_OK:
 			state = Function_State::RUNNING_TIMER;
@@ -150,8 +153,23 @@ void loop()
 		timer->start_timer(hw_timer);
 		if (xQueueReceive(timer->display_queue, (void *)&display_update_queued, portMAX_DELAY))
 		{
-			display->convert_to_display(selected_program->tick());
+			if (program_display_info.display_rounds)
+			{
+				display->update_display(5, program_display_info.rounds_remaining / 10, CRGB::Green);
+				display->update_display(4, program_display_info.rounds_remaining % 10, CRGB::Green);
+			}
+
+			if (program_display_info.currently_working)
+			{
+				display->convert_to_display(program_display_info.seconds_value, CRGB::Red);
+			}
+			else
+			{
+				display->convert_to_display(program_display_info.seconds_value, CRGB::Green);
+			}
+
 			display->push_to_display();
+			
 			if (selected_program->tick())
 			{
 				timer->stop_timer(hw_timer);
@@ -163,30 +181,29 @@ void loop()
 	}
 }
 
-void print_program_string(uint8_t program_index)
+void print_program_string(std::string program_string)
 {
-	program_string = menu->get_program_string(program_index);
 	display->write_string(program_string, program_string.length(), CRGB::Red);
 	display->push_to_display();
 }
 
 void capture_ir_commands()
 {
-	decode_results queue_ir_input;
-	if (irrecv.decode(&queue_ir_input))
+	IRData queue_ir_input;
+	if (IrReceiver.decode())
 	{
-		xQueueSend(IR_queue, &queue_ir_input, 0);
+		queue_ir_input = IrReceiver.decodedIRData;
+		xQueueSend(IR_queue, &(queue_ir_input.command), 0);
 	}
-	irrecv.resume();
+	IrReceiver.resume();
 }
 
 int control_work_input(CRGB colour)
 {
-
 	uint8_t selected_digit = 3;
 	std::array<uint8_t, 4> digit_values = {0};
 
-	ir_input.value = IR_NULL;
+	ir_input.command = IR_NIL;
 	display->clear_display();
 
 	// Treat each display_value digit as a discrete 0-9, no rolling over, thats annoying
@@ -197,25 +214,25 @@ int control_work_input(CRGB colour)
 	display->update_display(0, digit_values[selected_digit], colour);
 
 	// Select digit to input to, blink the digit selected.
-	while (ir_input.value != IR_OK)
+	while (ir_input.command != IR_OK)
 	{
-		ir_input.value = IR_NULL;
+		ir_input.command = IR_NIL;
 		capture_ir_commands();
 		xQueueReceive(IR_queue, &ir_input, 10);
 		// Select digits to increment/decrement
-		switch (ir_input.value)
+		switch (ir_input.command)
 		{
 		case IR_RIGHT:
-			selected_digit == 0 ? selected_digit = 3 : selected_digit--;
+			selected_digit = (selected_digit == 0) ? selected_digit = 3 : selected_digit--;
 			break;
 		case IR_LEFT:
-			selected_digit == 3 ? selected_digit = 0 : selected_digit++;
+			selected_digit = (selected_digit == 3) ? selected_digit = 0 : selected_digit++;
 			break;
 		case IR_UP:
-			digit_values[selected_digit] == 9 ? digit_values[selected_digit] = 0 : digit_values[selected_digit]++;
+			digit_values[selected_digit] = (digit_values[selected_digit] == 9) ? digit_values[selected_digit] = 0 : digit_values[selected_digit]++;
 			break;
 		case IR_DOWN:
-			digit_values[selected_digit] == 0 ? digit_values[selected_digit] = 9 : digit_values[selected_digit]--;
+			digit_values[selected_digit] = (digit_values[selected_digit] == 0) ? digit_values[selected_digit] = 9 : digit_values[selected_digit]--;
 			break;
 		case IR_BACK:
 			state = Function_State::IDLE;
@@ -241,7 +258,7 @@ uint8_t control_round_input()
 {
 	uint8_t num_input = 0;
 
-	ir_input.value = IR_NULL;
+	ir_input.command = IR_NIL;
 	display->clear_display();
 
 	display->write_string("rnd", 3, CRGB::Green);
@@ -251,21 +268,21 @@ uint8_t control_round_input()
 	display->update_display(0, num_input % 10, CRGB::Red);
 	display->push_to_display();
 
-	while (ir_input.value != IR_OK)
+	while (ir_input.command != IR_OK)
 	{
-		ir_input.value = IR_NULL;
+		ir_input.command = IR_NIL;
 		capture_ir_commands();
 		xQueueReceive(IR_queue, &ir_input, 10);
-		switch (ir_input.value)
+		switch (ir_input.command)
 		{
 		case IR_BACK:
 			state = Function_State::IDLE;
 			break;
 		case IR_UP:
-			num_input < 99 ? num_input++ : num_input = 0;
+			num_input = (num_input < 99) ? num_input++ : num_input = 0;
 			break;
 		case IR_DOWN:
-			num_input > 0 ? num_input-- : num_input = 99;
+			num_input = (num_input > 0) ? num_input-- : num_input = 99;
 			break;
 		default:
 			break;
