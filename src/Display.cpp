@@ -162,5 +162,6 @@ void Display::push_to_display()
 }
 void Display::clear_display()
 {
+
     FastLED.showColor(CRGB::Black);
 }

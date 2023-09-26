@@ -6,6 +6,7 @@ enum class Phase
     TEN_SECOND_TO_START,
     WORK,
     REST,
+    PAUSED,
     FINISHED,
 };
 
@@ -33,6 +34,7 @@ public:
         bool beep = false;
         bool display_rounds;
         bool currently_working;
+        bool paused; // If program is paused, do something.
         uint8_t rounds_remaining;
 
         uint16_t beep_milliseconds;
@@ -52,7 +54,9 @@ public:
 
     Program(std::string program_name_)
     {
-        program_name = program_name_;
+        this->program_name = program_name_;
+        this->set_prog_params();
+        this->set_display_info();
     }
 
     virtual ~Program() = default;
@@ -67,17 +71,17 @@ public:
     struct prog_params program_params;
     struct program_display_info program_display_info;
 
-    void set_work_seconds(int work_seconds_)
+    virtual void set_work_seconds(int work_seconds_)
     {
         work_seconds = work_seconds_;
         this->program_params.need_work = false;
     }
-    void set_rest_seconds(int rest_seconds_)
+    virtual void set_rest_seconds(int rest_seconds_)
     {
         rest_seconds = rest_seconds_;
         this->program_params.need_rest = false;
     }
-    void set_num_rounds(int num_rounds_)
+    virtual void set_num_rounds(int num_rounds_)
     {
         num_rounds = num_rounds_;
         this->program_params.need_rounds = false;

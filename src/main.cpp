@@ -83,10 +83,16 @@ void loop()
 	uint8_t program_index = 0;
 	std::string program_string;
 	Program *selected_program = nullptr;
+
+	timer->start_timer(hw_timer);
 	switch (state)
 	{
 	case Function_State::IDLE:
-		clock_69->update_clock_display(timer->seconds_counter);
+		if (update_display)
+		{
+			// Change to RTC once ready
+			clock_69->update_clock_display(timer->seconds_counter);
+		}
 		if (ir_input.command == IR_UP || ir_input.command == IR_DOWN)
 		{
 			state = Function_State::NAVIGATING_MENU;
@@ -109,7 +115,10 @@ void loop()
 			selected_program = menu->select_program(program_index);
 			prog_params = selected_program->get_prog_params();
 			state = Function_State::CONFIGURING_PROGRAM;
-
+		case IR_BACK:
+			state = Function_State::IDLE;
+			display->clear_display();
+			break;
 		default:
 			break;
 		}
@@ -148,10 +157,8 @@ void loop()
 		}
 		break;
 	case Function_State::RUNNING_TIMER:
-		volatile bool display_update_queued;
-
 		timer->start_timer(hw_timer);
-		if (xQueueReceive(timer->display_queue, (void *)&display_update_queued, portMAX_DELAY))
+		if (xQueueReceive(timer->display_queue, (void *)&update_display, portMAX_DELAY))
 		{
 			if (program_display_info.display_rounds)
 			{
@@ -169,7 +176,7 @@ void loop()
 			}
 
 			display->push_to_display();
-			
+
 			if (selected_program->tick())
 			{
 				timer->stop_timer(hw_timer);
