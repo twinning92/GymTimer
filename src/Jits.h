@@ -15,8 +15,5 @@ public:
     Jits();
     bool tick();
     void set_prog_params() override;
-    void set_display_info() override;
-    void set_work_seconds(int work_seconds_) override;
-    void set_rest_seconds(int rest_seconds_) override;
-    void start() override;
+    void init_display_info() override;
 };

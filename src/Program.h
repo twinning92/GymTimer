@@ -19,22 +19,23 @@ protected:
     uint16_t rest_seconds;
     uint8_t num_rounds;
     Phase program_phase;
-    uint16_t elapsed_time = 0;
+    uint16_t elapsed_seconds = 0;
 
 public:
     struct prog_params
     {
-        bool need_rounds;
-        bool need_rest;
-        bool need_work;
+        // Set all to true, and instantiations should update to false if not needeed upon construction
+        bool need_rounds = true;
+        bool need_rest = true;
+        bool need_work = true;
     };
 
     struct program_display_info
     {
         bool beep = false;
         bool display_rounds;
-        bool currently_working;
-        bool paused; // If program is paused, do something.
+        bool currently_working = false;
+        bool paused = false; // If program is paused, do something.
         uint8_t rounds_remaining;
 
         uint16_t beep_milliseconds;
@@ -42,10 +43,10 @@ public:
         uint16_t seconds_value;
     };
     virtual void set_prog_params() = 0;
-    virtual void set_display_info() = 0;
+    virtual void init_display_info() = 0;
     virtual struct prog_params get_prog_params() { return this->program_params; }
     virtual struct program_display_info get_display_info() { return this->program_display_info; }
-    virtual void start() = 0;
+    virtual void start() { this->program_phase = Phase::TEN_SECOND_TO_START; };
     virtual bool tick() = 0;
 
     const std::string get_name() { return program_name; };
@@ -56,7 +57,7 @@ public:
     {
         this->program_name = program_name_;
         this->set_prog_params();
-        this->set_display_info();
+        this->init_display_info();
     }
 
     virtual ~Program() = default;
