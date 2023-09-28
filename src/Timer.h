@@ -1,5 +1,7 @@
 #pragma once
-class Timer
+#include "Subject.h"
+
+class Timer : public Subject
 {
 private:
 	Timer();

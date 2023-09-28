@@ -1,6 +1,6 @@
 #include "Countup_Round.h"
 
-bool Countup_Round::tick()
+bool Countup_Round::on_notify()
 {
     bool finished = false;
     switch (this->program_phase)

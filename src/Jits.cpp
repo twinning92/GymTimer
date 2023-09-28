@@ -14,7 +14,7 @@ void Jits::init_display_info()
     this->program_display_info.display_rounds = true;
 }
 
-bool Jits::tick()
+bool Jits::on_notify()
 {
     bool finished = false;
     switch (this->program_phase)

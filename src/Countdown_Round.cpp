@@ -12,9 +12,8 @@ void Countdown_Round::init_display_info()
     this->program_display_info.display_rounds = true;
 }
 
-bool Countdown_Round::tick()
+void Countdown_Round::on_notify()
 {
-    bool finished = false;
     switch (this->program_phase)
     {
     case Phase::TEN_SECOND_TO_START:
@@ -61,10 +60,9 @@ bool Countdown_Round::tick()
         }
         break;
     case Phase::FINISHED:
-        finished = true;
+        this->finished_program = true;
         break;
     default:
         break;
     }
-    return finished;
 }

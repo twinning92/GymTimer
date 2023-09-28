@@ -4,5 +4,5 @@
 class Countup_Round : public Countdown_Round
 {
     public:
-        bool tick() override;
+        bool on_notify() override;
 };

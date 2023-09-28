@@ -8,6 +8,8 @@
 #include "Countdown_Round.h"
 #include "IR_Signal.h"
 
+#include "RTC.h"
+
 // IR defines and setup
 #define IR_RECEIVER_PIN 13
 IRData ir_input;
@@ -30,6 +32,7 @@ Timer *timer = nullptr;
 Display *display = nullptr;
 Menu *menu = nullptr;
 Clock *clock_69 = nullptr;
+RTC *rtc = nullptr;
 
 Function_State state;
 
@@ -45,6 +48,7 @@ void setup()
 	IR_queue = xQueueCreate(20, sizeof(uint16_t));
 
 	Serial.begin(115200);
+
 	display = new Display();
 	clock_69 = new Clock(display);
 	menu = new Menu();
@@ -55,9 +59,15 @@ void setup()
 	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
 	timerAlarmEnable(hw_timer);
 
+	rtc = new RTC();
+	if (!rtc->is_valid())
+	{
+		// set time
+		timer->set_seconds_counter(23, 59, 50);
+	}
+
 	state = Function_State::IDLE;
 	// Init the clock with the GPS time, but for now... setting the inital time values to 10:45:15.
-	timer->set_seconds_counter(23, 59, 50);
 }
 
 void loop()
@@ -169,7 +179,7 @@ void loop()
 
 			display->push_to_display();
 
-			if (selected_program->tick())
+			if (selected_program->get_program_finished())
 			{
 				timer->stop_timer(hw_timer);
 			}
