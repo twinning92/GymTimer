@@ -6,20 +6,13 @@
 #include "Menu.h"
 #include "Clock.h"
 #include "Countdown_Round.h"
+#include "IR_Signal.h"
 
 // IR defines and setup
 #define IR_RECEIVER_PIN 13
 IRData ir_input;
 IRrecv irrecv(IR_RECEIVER_PIN);
 QueueHandle_t IR_queue;
-
-#define IR_NIL 0
-#define IR_UP 1
-#define IR_DOWN 2
-#define IR_RIGHT 3
-#define IR_LEFT 4
-#define IR_OK 5
-#define IR_BACK 6
 
 #define NUM_PROGRAMS 4
 
@@ -70,7 +63,6 @@ void setup()
 void loop()
 {
 	// check IR Queue:
-	ir_input.command = IR_NIL;
 	capture_ir_commands();
 	xQueueReceive(IR_queue, &ir_input, 10);
 
@@ -210,7 +202,6 @@ int control_work_input(CRGB colour)
 	uint8_t selected_digit = 3;
 	std::array<uint8_t, 4> digit_values = {0};
 
-	ir_input.command = IR_NIL;
 	display->clear_display();
 
 	// Treat each display_value digit as a discrete 0-9, no rolling over, thats annoying
@@ -223,7 +214,6 @@ int control_work_input(CRGB colour)
 	// Select digit to input to, blink the digit selected.
 	while (ir_input.command != IR_OK)
 	{
-		ir_input.command = IR_NIL;
 		capture_ir_commands();
 		xQueueReceive(IR_queue, &ir_input, 10);
 		// Select digits to increment/decrement
@@ -265,7 +255,6 @@ uint8_t control_round_input()
 {
 	uint8_t num_input = 0;
 
-	ir_input.command = IR_NIL;
 	display->clear_display();
 
 	display->write_string("rnd", 3, CRGB::Green);
@@ -277,7 +266,6 @@ uint8_t control_round_input()
 
 	while (ir_input.command != IR_OK)
 	{
-		ir_input.command = IR_NIL;
 		capture_ir_commands();
 		xQueueReceive(IR_queue, &ir_input, 10);
 		switch (ir_input.command)
