@@ -72,7 +72,7 @@ class Display
 public:
     Display();
     void push_to_display();
-    void write_string(const std::string, uint8_t length, CRGB colour);
+    void write_string(const String, uint8_t length, CRGB colour);
     void convert_to_display(const unsigned int total_seconds, CRGB colour);
     void update_display(uint8_t position, uint8_t number_to_render);
     void update_display(uint8_t position, uint8_t number_to_render, CRGB colour);

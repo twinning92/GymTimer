@@ -11,10 +11,10 @@ enum class Phase
     FINISHED,
 };
 
-class Program : public Observer
+class Program
 {
 protected:
-    std::string program_name;
+    String program_name;
     uint8_t start_seconds = 10;
     uint16_t work_seconds;
     uint16_t rest_seconds;
@@ -56,12 +56,12 @@ public:
     }
     virtual void on_notify() = 0;
 
-    const std::string get_name() { return program_name; }
+    const String get_name() { return program_name; }
     enum Phase get_program_phase() { return program_phase; }
     bool get_program_finished() { return finished_program; }
     void set_program_phase(enum Phase phase_) { this->program_phase = phase_; }
 
-    Program(std::string program_name_)
+    Program(String program_name_)
     {
         this->program_name = program_name_;
         this->set_prog_params();

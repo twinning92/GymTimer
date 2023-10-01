@@ -1,6 +1,6 @@
 #include "Menu.h"
 
-const std::string Menu::get_program_string(uint8_t program_index)
+const String Menu::get_program_string(uint8_t program_index)
 {
     return programs[program_index]->get_name();
 }

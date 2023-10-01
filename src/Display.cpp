@@ -52,7 +52,7 @@ Display::Display() : digits{Digit(leds, 0 * LEDS_PER_DIGIT), Digit(leds, 1 * LED
     FastLED.setBrightness(10);
 }
 
-void Display::write_string(const std::string string, uint8_t length, CRGB colour)
+void Display::write_string(const String string, uint8_t length, CRGB colour)
 {
     clear_display();
 

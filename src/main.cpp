@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <IRremote.hpp>
 
 #include "Timer.h"
 #include "Display.h"
@@ -9,14 +8,6 @@
 #include "IR_Signal.h"
 
 #include "RTC.h"
-
-// IR defines and setup
-#define IR_RECEIVER_PIN 13
-IRData ir_input;
-IRrecv irrecv(IR_RECEIVER_PIN);
-QueueHandle_t IR_queue;
-
-#define NUM_PROGRAMS 4
 
 enum class Function_State
 {
@@ -33,6 +24,7 @@ Display *display = nullptr;
 Menu *menu = nullptr;
 Clock *clock_69 = nullptr;
 RTC *rtc = nullptr;
+IR_Signal *ir = nullptr;
 
 Function_State state;
 
@@ -43,15 +35,13 @@ void print_program_string(std::string program_index);
 
 void setup()
 {
-	pinMode(IR_RECEIVER_PIN, INPUT); // Set the IR receiver pin as input
-	irrecv.enableIRIn();
-	IR_queue = xQueueCreate(20, sizeof(uint16_t));
-
 	Serial.begin(115200);
 
 	display = new Display();
 	clock_69 = new Clock(display);
 	menu = new Menu();
+
+    pinMode(IR_RECEIVER_PIN, INPUT); // Set the IR receiver pin as input
 
 	timer = Timer::getInstance();
 	hw_timer = timerBegin(0, 80, true);
@@ -59,7 +49,11 @@ void setup()
 	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
 	timerAlarmEnable(hw_timer);
 
+	ir = new IR_Signal();
+	ir->setup_ir();
+
 	rtc = new RTC();
+	
 	if (!rtc->is_valid())
 	{
 		// set time
@@ -73,12 +67,13 @@ void setup()
 void loop()
 {
 	// check IR Queue:
-	capture_ir_commands();
-	xQueueReceive(IR_queue, &ir_input, 10);
+	ir->enqueue_ir_commands();
+	IRData ir_input = ir->get_from_queue();
 
 	// check timer queue:
 	volatile bool update_display;
 	xQueueReceive(timer->display_queue, (void *)&update_display, portMAX_DELAY);
+	
 	struct Program::prog_params prog_params;
 	struct Program::program_display_info program_display_info;
 
@@ -121,11 +116,11 @@ void loop()
 			state = Function_State::IDLE;
 			display->clear_display();
 			break;
-		default:
-			break;
+\
 		}
 		break;
 	case Function_State::CONFIGURING_PROGRAM:
+		// TODO: Move this into the program interface. 
 		if (prog_params.need_rounds)
 		{
 			uint8_t num_rounds_input = control_round_input();
@@ -190,27 +185,18 @@ void loop()
 	}
 }
 
-void print_program_string(std::string program_string)
+void print_program_string(String program_string)
 {
 	display->write_string(program_string, program_string.length(), CRGB::Red);
 	display->push_to_display();
-}
-
-void capture_ir_commands()
-{
-	IRData queue_ir_input;
-	if (IrReceiver.decode())
-	{
-		queue_ir_input = IrReceiver.decodedIRData;
-		xQueueSend(IR_queue, &(queue_ir_input.command), 0);
-	}
-	IrReceiver.resume();
 }
 
 int control_work_input(CRGB colour)
 {
 	uint8_t selected_digit = 3;
 	std::array<uint8_t, 4> digit_values = {0};
+	IRData ir_input;
+	ir_input.command = IR_NIL;
 
 	display->clear_display();
 
@@ -224,8 +210,8 @@ int control_work_input(CRGB colour)
 	// Select digit to input to, blink the digit selected.
 	while (ir_input.command != IR_OK)
 	{
-		capture_ir_commands();
-		xQueueReceive(IR_queue, &ir_input, 10);
+		ir->enqueue_ir_commands();
+		ir_input = ir->get_from_queue();
 		// Select digits to increment/decrement
 		switch (ir_input.command)
 		{
