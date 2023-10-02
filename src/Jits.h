@@ -13,7 +13,7 @@ class Jits : public Program
 
 public:
     Jits();
-    bool on_notify();
+    void on_notify() override;
     void set_prog_params() override;
     void init_display_info() override;
 };

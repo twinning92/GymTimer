@@ -14,9 +14,8 @@ void Jits::init_display_info()
     this->program_display_info.display_rounds = true;
 }
 
-bool Jits::on_notify()
+void Jits::on_notify()
 {
-    bool finished = false;
     switch (this->program_phase)
     {
     case Phase::TEN_SECOND_TO_START:
@@ -75,6 +74,10 @@ bool Jits::on_notify()
             this->program_phase = Phase::WORK;
         }
         break;
+
+        if(this->num_rounds <= 0)
+        {
+            this->finished_program = true;
+        }
     }
-    return finished;
 }

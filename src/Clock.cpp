@@ -13,13 +13,14 @@ void Clock::update_clock_display(int total_seconds_elapsed)
     uint8_t low_hours = total_hours % 10;
     uint8_t high_hours = total_hours / 10;
 
-    display->update_display(4, low_seconds);
-    display->update_display(5, high_seconds);
-    display->update_display(0, low_minutes);
-    display->update_display(1, high_minutes);
-    display->update_display(2, low_hours);
-    display->update_display(3, high_hours);
+    display->update_display(0, low_seconds);
+    display->update_display(1, high_seconds);
+    display->update_display(2, low_minutes);
+    display->update_display(3, high_minutes);
+    display->update_display(4, low_hours);
+    display->update_display(5, high_hours);
     display->push_to_display();
+    Serial.printf("Clock Time: %d%d:%d%d:%d%d\n",high_hours, low_hours, high_minutes, low_minutes, high_seconds, low_seconds);
 }
 
 /*

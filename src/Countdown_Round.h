@@ -8,6 +8,5 @@ public:
     void set_prog_params() override;
     void init_display_info() override;
 
-    void start() override;
     void on_notify() override;
 };

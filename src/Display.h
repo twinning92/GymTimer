@@ -1,11 +1,11 @@
 #pragma once
 #include <FastLED.h>
 
-#define NUM_LEDS 8 * 7 * 6
+#define LEDS_PER_DIGIT ((4 * 8) + (3 * 9))
+#define NUM_LEDS ((LEDS_PER_DIGIT * 6) + 8)
 #define NUM_SEGMENTS 7
-#define LEDS_PER_DIGIT 8 * 7
 
-#define DATA_PIN 3
+#define DATA_PIN 27
 
 class Segment
 {

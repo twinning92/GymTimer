@@ -1,8 +1,7 @@
 #include "Countup_Round.h"
 
-bool Countup_Round::on_notify()
+void Countup_Round::on_notify()
 {
-    bool finished = false;
     switch (this->program_phase)
     {
     case Phase::TEN_SECOND_TO_START:
@@ -49,9 +48,8 @@ bool Countup_Round::on_notify()
         }
         if (this->num_rounds <= 0)
         {
-            finished = true;
+            this->finished_program = true;
         }
         break;
     }
-    return finished;
 }

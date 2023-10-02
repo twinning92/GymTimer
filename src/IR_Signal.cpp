@@ -17,6 +17,7 @@ void IR_Signal::enqueue_ir_commands()
 	if (IrReceiver.decode())
 	{
 		this->ir_data = IrReceiver.decodedIRData;
+		Serial.printf("Adding to IR Queue: %d\n", this->ir_data.command);
 		xQueueSend(IR_queue, &(this->ir_data), 0);
 	}
 	IrReceiver.resume();

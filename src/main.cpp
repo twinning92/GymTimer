@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <IRremote.hpp>
 
 #include "Timer.h"
 #include "Display.h"
@@ -31,7 +32,7 @@ Function_State state;
 int control_work_input(CRGB colour);
 uint8_t control_round_input();
 void capture_ir_commands();
-void print_program_string(std::string program_index);
+void print_program_string(String program_index);
 
 void setup()
 {
@@ -41,7 +42,7 @@ void setup()
 	clock_69 = new Clock(display);
 	menu = new Menu();
 
-    pinMode(IR_RECEIVER_PIN, INPUT); // Set the IR receiver pin as input
+	pinMode(IR_RECEIVER_PIN, INPUT); // Set the IR receiver pin as input
 
 	timer = Timer::getInstance();
 	hw_timer = timerBegin(0, 80, true);
@@ -53,7 +54,7 @@ void setup()
 	ir->setup_ir();
 
 	rtc = new RTC();
-	
+
 	if (!rtc->is_valid())
 	{
 		// set time
@@ -73,18 +74,19 @@ void loop()
 	// check timer queue:
 	volatile bool update_display;
 	xQueueReceive(timer->display_queue, (void *)&update_display, portMAX_DELAY);
-	
+
 	struct Program::prog_params prog_params;
 	struct Program::program_display_info program_display_info;
 
 	uint8_t program_index = 0;
-	std::string program_string;
+	String program_string;
 	Program *selected_program = nullptr;
 
 	timer->start_timer(hw_timer);
 	switch (state)
 	{
 	case Function_State::IDLE:
+		Serial.println("State: IDLE");
 		if (update_display)
 		{
 			// Change to RTC once ready
@@ -92,19 +94,26 @@ void loop()
 		}
 		if (ir_input.command == IR_UP || ir_input.command == IR_DOWN)
 		{
+			Serial.printf("Receiving: %d, changing state to NAVIGATING_MENU\n", ir_input.command);
 			state = Function_State::NAVIGATING_MENU;
 		}
 		break;
 	case Function_State::NAVIGATING_MENU:
+		Serial.printf("State: NAVIGATING_MENU\n");
+		Serial.printf("ir_input value: %d\n", ir_input.command);
+		ir->enqueue_ir_commands();
+		ir_input = ir->get_from_queue();
 		switch (ir_input.command)
 		{
 		case IR_UP:
 			program_index = (program_index == menu->programs.size()) ? program_index = 0 : program_index++;
+			Serial.printf("IR UP: program_index: %d\t programs.size(): %d\n", program_index, menu->programs.size());
 			print_program_string(menu->get_program_string(program_index));
 			break;
 
 		case IR_DOWN:
 			program_index = (program_index == 0) ? program_index = menu->programs.size() : program_index--;
+			Serial.printf("IR DOWN: program_index: %d\t programs.size(): %d\n", program_index, menu->programs.size());
 			print_program_string(menu->get_program_string(program_index));
 			break;
 
@@ -116,11 +125,11 @@ void loop()
 			state = Function_State::IDLE;
 			display->clear_display();
 			break;
-\
 		}
 		break;
 	case Function_State::CONFIGURING_PROGRAM:
-		// TODO: Move this into the program interface. 
+		Serial.println("State: CONFIGURING_PROGRAM");
+		// TODO: Move this into the program interface.
 		if (prog_params.need_rounds)
 		{
 			uint8_t num_rounds_input = control_round_input();
@@ -142,6 +151,8 @@ void loop()
 		}
 		break;
 	case Function_State::READY_TO_START:
+		Serial.println("State: READY_TO_START");
+
 		program_display_info = selected_program->get_display_info();
 		selected_program->start();
 		switch (ir_input.command)
@@ -154,6 +165,8 @@ void loop()
 		}
 		break;
 	case Function_State::RUNNING_TIMER:
+		Serial.println("State: RUNNING_TIMER");
+
 		timer->start_timer(hw_timer);
 		if (xQueueReceive(timer->display_queue, (void *)&update_display, portMAX_DELAY))
 		{
@@ -185,7 +198,7 @@ void loop()
 	}
 }
 
-void print_program_string(String program_string)
+void print_program_string(const String program_string)
 {
 	display->write_string(program_string, program_string.length(), CRGB::Red);
 	display->push_to_display();
@@ -250,7 +263,8 @@ int control_work_input(CRGB colour)
 uint8_t control_round_input()
 {
 	uint8_t num_input = 0;
-
+	IRData ir_input;
+	ir_input.command = IR_NIL;
 	display->clear_display();
 
 	display->write_string("rnd", 3, CRGB::Green);
@@ -262,8 +276,8 @@ uint8_t control_round_input()
 
 	while (ir_input.command != IR_OK)
 	{
-		capture_ir_commands();
-		xQueueReceive(IR_queue, &ir_input, 10);
+		ir->enqueue_ir_commands();
+		ir_input = ir->get_from_queue();
 		switch (ir_input.command)
 		{
 		case IR_BACK:

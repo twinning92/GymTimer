@@ -63,9 +63,10 @@ public:
 
     Program(String program_name_)
     {
+        Serial.printf("Setting program name to: %s\n", program_name_);
         this->program_name = program_name_;
-        this->set_prog_params();
-        this->init_display_info();
+        // this->set_prog_params();
+        // this->init_display_info();
     }
 
     virtual ~Program() = default;

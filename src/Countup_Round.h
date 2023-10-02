@@ -1,8 +1,10 @@
 #pragma once
-#include "Countdown_Round.h"
+#include "Program.h"
 
-class Countup_Round : public Countdown_Round
+class Countup_Round : public Program
 {
+    using Program::Program;
+
     public:
-        bool on_notify() override;
+        void on_notify() override;
 };
