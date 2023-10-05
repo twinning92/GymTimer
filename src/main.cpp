@@ -28,6 +28,7 @@ Clock *clock_69 = nullptr;
 RTC *rtc = nullptr;
 IR_Signal *ir = nullptr;
 uint8_t program_index = 0;
+#define program_max (menu->programs.size() - 1)
 
 Function_State state;
 
@@ -65,34 +66,72 @@ void setup()
 
 	state = Function_State::IDLE;
 	// Init the clock with the GPS time, but for now... setting the inital time values to 10:45:15.
+
+	timer->start_timer(hw_timer);
 }
+
+void checkTime(void) {
+	bool update_display;
+	xQueueReceive(timer->display_queue, (void *)&update_display, x_ticks_to_wait);
+	if (update_display)
+	{
+		// Change to RTC once ready
+		clock_69->update_clock_display(timer->seconds_counter);
+	}
+}
+
+void menu_navigation(IRData ir_input, struct Program::prog_params *prog_params, Program **selected_program) {
+		switch (ir_input.command)
+		{
+		case IR_UP:
+			display->clear_display();
+			program_index++;
+			if(program_index >= program_max)
+				program_index = 0;
+			break;
+
+		case IR_DOWN:
+			display->clear_display();
+			program_index--;
+			if (program_index < 0)
+				program_index = program_max;
+			break;
+
+		case IR_OK:
+			display->clear_display();
+			*selected_program = menu->select_program(program_index);
+			*prog_params = menu->select_program(program_index)->get_prog_params();
+			state = Function_State::CONFIGURING_PROGRAM;
+			break;
+
+		case IR_BACK:
+			state = Function_State::IDLE;
+			display->clear_display();
+			break;
+		}
+}
+
 
 void loop()
 {
-	// check IR Queue:
+	static struct Program::prog_params prog_params;
+	static struct Program::program_display_info program_display_info;
+	static Program *selected_program = nullptr;
+
+
+	// check IR Queue: 
+	// TODO: just return the received code - no queue no point as not ISR context
 	ir->enqueue_ir_commands();
 	IRData ir_input = ir->get_from_queue();
+	// TODO: change to return pointer and if NULL then no command received
 
-	struct Program::prog_params prog_params;
-	struct Program::program_display_info program_display_info;
 
-	String program_string;
-	Program *selected_program = nullptr;
-
-	timer->start_timer(hw_timer);
 	switch (state)
 	{
 	case Function_State::IDLE:
 		Serial.println("State: IDLE");
+		checkTime();
 		// check timer queue:
-		volatile bool update_display;
-		xQueueReceive(timer->display_queue, (void *)&update_display, x_ticks_to_wait);
-		if (update_display)
-		{
-
-			// Change to RTC once ready
-			clock_69->update_clock_display(timer->seconds_counter);
-		}
 		if (ir_input.command == IR_UP || ir_input.command == IR_DOWN)
 		{
 			Serial.printf("Receiving: %d, changing state to NAVIGATING_MENU\n", ir_input.command);
@@ -100,77 +139,80 @@ void loop()
 			display->clear_display();
 		}
 		break;
+
+
 	case Function_State::NAVIGATING_MENU:
 		Serial.printf("State: NAVIGATING_MENU\n");
-
 		Serial.printf("get_program_string: %s\n", menu->get_program_string(program_index));
 		print_program_string(menu->get_program_string(program_index));
-		switch (ir_input.command)
-		{
-		case IR_UP:
-			display->clear_display();
-			program_index = (program_index == menu->programs.size() - 1) ? 0 : ++program_index;
-			break;
-
-		case IR_DOWN:
-			display->clear_display();
-			program_index = (program_index == 0) ? menu->programs.size() - 1 : --program_index;
-			break;
-
-		case IR_OK:
-			display->clear_display();
-			selected_program = menu->select_program(program_index);
-			prog_params = selected_program->get_prog_params();
-			state = Function_State::CONFIGURING_PROGRAM;
-			break;
-		case IR_BACK:
-			state = Function_State::IDLE;
-			display->clear_display();
-			break;
-		}
+		menu_navigation(ir_input, &prog_params, &selected_program);
 		break;
-	case Function_State::CONFIGURING_PROGRAM:
-		Serial.println("State: CONFIGURING_PROGRAM");
-		// TODO: Move this into the program interface.
-		if (prog_params.need_rounds)
-		{
-			uint8_t num_rounds_input = control_round_input();
-			selected_program->set_num_rounds(num_rounds_input);
-		}
-		if (prog_params.need_work)
-		{
-			uint8_t work_seconds_input = control_work_input(CRGB::Red);
-			selected_program->set_work_seconds(work_seconds_input);
-		}
-		if (prog_params.need_rest)
-		{
-			uint8_t rest_seconds_input = control_work_input(CRGB::Green);
-			selected_program->set_rest_seconds(rest_seconds_input);
-		}
-		if (!prog_params.need_rounds && !prog_params.need_work && !prog_params.need_rest)
-		{
-			state = Function_State::READY_TO_START;
-		}
+
+
+
+	case Function_State::CONFIGURING_PROGRAM: {
+		static enum class config_state{
+			s_round = 0,
+			s_work_red,
+			s_work_green
+		} c_state = config_state::s_round;
+		switch(c_state) {
+			case config_state::s_round:
+				//Serial.println("State: CONFIGURING_PROGRAM");
+				// TODO: Move this into the program interface.
+				if (!prog_params.need_rounds) {
+					c_state = config_state::s_work_red;
+					break;
+				}
+				uint8_t num_rounds_input = control_round_input(ir_input);
+				if(num_rounds_input < 0xFF) {
+					selected_program->set_num_rounds(num_rounds_input);
+					c_state = config_state::s_work_red;
+				}
+			}
+
+
+
+
+	// TODO: others....
+
+			if (prog_params.need_work)
+			{
+				uint8_t work_seconds_input = control_work_input(CRGB::Red);
+				selected_program->set_work_seconds(work_seconds_input);
+			}
+			if (prog_params.need_rest)
+			{
+				uint8_t rest_seconds_input = control_work_input(CRGB::Green);
+				selected_program->set_rest_seconds(rest_seconds_input);
+			}
+			if (!prog_params.need_rounds && !prog_params.need_work && !prog_params.need_rest)
+			{
+				state = Function_State::READY_TO_START;
+			}
+	}
 		break;
+	
 	case Function_State::READY_TO_START:
 		Serial.println("State: READY_TO_START");
-
 		program_display_info = selected_program->get_display_info();
-		selected_program->start();
 		switch (ir_input.command)
 		{
+			// TODO: add back etc
 		case IR_OK:
+			selected_program->start();
 			state = Function_State::RUNNING_TIMER;
 			break;
 		default:
 			break;
 		}
 		break;
+
+		
 	case Function_State::RUNNING_TIMER:
 		Serial.println("State: RUNNING_TIMER");
-
-		timer->start_timer(hw_timer);
-		if (xQueueReceive(timer->display_queue, (void *)&update_display, portMAX_DELAY))
+		bool temp;
+		if (xQueueReceive(timer->display_queue, (void *)&temp, portMAX_DELAY))
 		{
 			if (program_display_info.display_rounds)
 			{
@@ -191,7 +233,7 @@ void loop()
 
 			if (selected_program->get_program_finished())
 			{
-				timer->stop_timer(hw_timer);
+				//TODO: return to IDLE
 			}
 		}
 		break;
@@ -262,26 +304,14 @@ int control_work_input(CRGB colour)
 	return total_seconds;
 }
 
-uint8_t control_round_input()
+uint8_t control_round_input(IRData ir_input)
 {
-	uint8_t num_input = 0;
-	IRData ir_input;
-	ir_input.command = IR_NIL;
+	static uint8_t num_input = 0;
 	display->clear_display();
-
 	display->write_string("rnd", 3, CRGB::Green);
 
-	// TODO: blink the RED numbers?
-	display->update_display(1, num_input / 10, CRGB::Red);
-	display->update_display(0, num_input % 10, CRGB::Red);
-	display->push_to_display();
-
-	while (ir_input.command != IR_OK)
+	switch (ir_input.command)
 	{
-		ir->enqueue_ir_commands();
-		ir_input = ir->get_from_queue();
-		switch (ir_input.command)
-		{
 		case IR_BACK:
 			state = Function_State::IDLE;
 			break;
@@ -291,13 +321,14 @@ uint8_t control_round_input()
 		case IR_DOWN:
 			num_input = (num_input > 0) ? num_input-- : num_input = 99;
 			break;
+		case IR_OK:
+			return num_input;
 		default:
 			break;
-		}
-
-		display->update_display(0, num_input % 10, CRGB::Red);
-		display->update_display(1, num_input / 10, CRGB::Red);
-		display->push_to_display();
 	}
-	return num_input;
+
+	display->update_display(0, num_input % 10, CRGB::Red);
+	display->update_display(1, num_input / 10, CRGB::Red);
+	display->push_to_display();
+	return 0xFF; // invalid to flag state machine to stay put
 }
