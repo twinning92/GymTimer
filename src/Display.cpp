@@ -55,74 +55,99 @@ Display::Display() : digits{Digit(leds, 0 * LEDS_PER_DIGIT), Digit(leds, 1 * LED
 
 void Display::write_string(const String string, uint8_t length, CRGB colour)
 {
-    for (int i = 0; i < length; i++)
+    Serial.printf("Printing: \n");
+    for (int i = 0; i <= length; i++)
     {
         switch (string.charAt(i))
         {
             // Basically need to reverse the display, string comes in left-right but digit mappings are right-left
         case 'A':
             update_display(length - i, 10, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
+
             break;
         case 'b':
             update_display(length - i, 11, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
+
             break;
         case 'c':
             update_display(length - i, 12, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'd':
             update_display(length - i, 13, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'E':
             update_display(length - i, 14, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'n':
             update_display(length - i, 15, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'o':
             update_display(length - i, 16, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'r':
             update_display(length - i, 17, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 't':
             update_display(length - i, 18, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'l':
         case 'i':
             update_display(length - i, 19, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'F':
         case 'f':
             update_display(length - i, 20, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'u':
         case 'U':
             update_display(length - i, 21, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'p':
         case 'P':
             update_display(length - i, 22, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'J':
+        case 'j':
             update_display(length - i, 23, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case 'S':
+        case 's':
             update_display(length - i, 24, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case ' ':
             update_display(length - i, 25, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case '_':
             update_display(length - i, 26, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         case '-':
             update_display(length - i, 27, colour);
+            Serial.printf("%d: %c\n", i, string.charAt(i));
             break;
         default:
             clear_digit(length - i);
+            Serial.printf("default: clearing digit. unable to print '%c'\n", i, string.charAt(i));
             break;
         }
     }
+    Serial.printf("length: %d", length);
 }
 
 void Display::convert_to_display(const unsigned int total_seconds, CRGB colour)
@@ -161,5 +186,5 @@ void Display::push_to_display()
 }
 void Display::clear_display()
 {
-    FastLED.showColor(CRGB::Black);
+    write_string("      ", 6, CRGB::Black);
 }

@@ -15,31 +15,31 @@ IRData IR_Signal::get_from_queue()
 
 void IR_Signal::enqueue_ir_commands()
 {
-	// if (IrReceiver.decode())
-	// {
-	// 	this->ir_data = IrReceiver.decodedIRData;
-	// 	Serial.printf("Adding to IR Queue: %d\n", this->ir_data.command);
-	// 	xQueueSend(IR_queue, &(this->ir_data), 0);
-	// }
-	// IrReceiver.resume();
-	if (Serial.available())
+	if (IrReceiver.decode())
 	{
-		switch (Serial.read())
-		{
-		case 'w':
-			this->ir_data.command = IR_UP;
-			break;
-		case 's':
-			this->ir_data.command = IR_DOWN;
-			break;
-		case 'a':
-			this->ir_data.command = IR_LEFT;
-			break;
-		case 'd':
-			this->ir_data.command = IR_RIGHT;
-		default:
-			break;
-		}
-		xQueueSend(IR_queue, &(this->ir_data), 50);
+		this->ir_data = IrReceiver.decodedIRData;
+		Serial.printf("Adding to IR Queue: %d\n", this->ir_data.command);
+		xQueueSend(IR_queue, &(this->ir_data), 0);
 	}
+	IrReceiver.resume();
+	// if (Serial.available())
+	// {
+	// 	switch (Serial.read())
+	// 	{
+	// 	case 'w':
+	// 		this->ir_data.command = IR_UP;
+	// 		break;
+	// 	case 's':
+	// 		this->ir_data.command = IR_DOWN;
+	// 		break;
+	// 	case 'a':
+	// 		this->ir_data.command = IR_LEFT;
+	// 		break;
+	// 	case 'd':
+	// 		this->ir_data.command = IR_RIGHT;
+	// 	default:
+	// 		break;
+	// 	}
+	// 	xQueueSend(IR_queue, &(this->ir_data), 50);
+	// }
 }

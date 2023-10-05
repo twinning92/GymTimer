@@ -20,6 +20,7 @@ enum class Function_State
 };
 
 hw_timer_t *hw_timer = nullptr;
+TickType_t x_ticks_to_wait = pdMS_TO_TICKS(0.5);
 Timer *timer = nullptr;
 Display *display = nullptr;
 Menu *menu = nullptr;
@@ -72,10 +73,6 @@ void loop()
 	ir->enqueue_ir_commands();
 	IRData ir_input = ir->get_from_queue();
 
-	// check timer queue:
-	volatile bool update_display;
-	xQueueReceive(timer->display_queue, (void *)&update_display, portMAX_DELAY);
-
 	struct Program::prog_params prog_params;
 	struct Program::program_display_info program_display_info;
 
@@ -87,6 +84,9 @@ void loop()
 	{
 	case Function_State::IDLE:
 		Serial.println("State: IDLE");
+		// check timer queue:
+		volatile bool update_display;
+		xQueueReceive(timer->display_queue, (void *)&update_display, x_ticks_to_wait);
 		if (update_display)
 		{
 
@@ -97,6 +97,7 @@ void loop()
 		{
 			Serial.printf("Receiving: %d, changing state to NAVIGATING_MENU\n", ir_input.command);
 			state = Function_State::NAVIGATING_MENU;
+			display->clear_display();
 		}
 		break;
 	case Function_State::NAVIGATING_MENU:
@@ -104,18 +105,20 @@ void loop()
 
 		Serial.printf("get_program_string: %s\n", menu->get_program_string(program_index));
 		print_program_string(menu->get_program_string(program_index));
-
 		switch (ir_input.command)
 		{
 		case IR_UP:
+			display->clear_display();
 			program_index = (program_index == menu->programs.size() - 1) ? 0 : ++program_index;
 			break;
 
 		case IR_DOWN:
+			display->clear_display();
 			program_index = (program_index == 0) ? menu->programs.size() - 1 : --program_index;
 			break;
 
 		case IR_OK:
+			display->clear_display();
 			selected_program = menu->select_program(program_index);
 			prog_params = selected_program->get_prog_params();
 			state = Function_State::CONFIGURING_PROGRAM;
