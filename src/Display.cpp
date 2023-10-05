@@ -43,6 +43,7 @@ void Digit::update_digit(uint8_t digit_to_render, CRGB colour)
     {
         bool segment_activate = (segments[i].segment_led_mask & display_mask) != 0;
         segments[i].update_segment(segment_activate, colour);
+        // Serial.printf("Segment letter: %c, start index: %d\n", segments[i].segment_designator, segments[i].start_index);
     }
 }
 
@@ -54,8 +55,6 @@ Display::Display() : digits{Digit(leds, 0 * LEDS_PER_DIGIT), Digit(leds, 1 * LED
 
 void Display::write_string(const String string, uint8_t length, CRGB colour)
 {
-    clear_display();
-    Serial.printf("Display::write_string: Attempting to write: %s\n", string);
     for (int i = 0; i < length; i++)
     {
         switch (string.charAt(i))

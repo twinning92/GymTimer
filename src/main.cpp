@@ -26,6 +26,7 @@ Menu *menu = nullptr;
 Clock *clock_69 = nullptr;
 RTC *rtc = nullptr;
 IR_Signal *ir = nullptr;
+uint8_t program_index = 0;
 
 Function_State state;
 
@@ -78,7 +79,6 @@ void loop()
 	struct Program::prog_params prog_params;
 	struct Program::program_display_info program_display_info;
 
-	uint8_t program_index = 0;
 	String program_string;
 	Program *selected_program = nullptr;
 
@@ -89,6 +89,7 @@ void loop()
 		Serial.println("State: IDLE");
 		if (update_display)
 		{
+
 			// Change to RTC once ready
 			clock_69->update_clock_display(timer->seconds_counter);
 		}
@@ -100,27 +101,25 @@ void loop()
 		break;
 	case Function_State::NAVIGATING_MENU:
 		Serial.printf("State: NAVIGATING_MENU\n");
-		Serial.printf("ir_input value: %d\n", ir_input.command);
-		ir->enqueue_ir_commands();
-		ir_input = ir->get_from_queue();
+
+		Serial.printf("get_program_string: %s\n", menu->get_program_string(program_index));
+		print_program_string(menu->get_program_string(program_index));
+
 		switch (ir_input.command)
 		{
 		case IR_UP:
-			program_index = (program_index == menu->programs.size()) ? program_index = 0 : program_index++;
-			Serial.printf("IR UP: program_index: %d\t programs.size(): %d\n", program_index, menu->programs.size());
-			print_program_string(menu->get_program_string(program_index));
+			program_index = (program_index == menu->programs.size() - 1) ? 0 : ++program_index;
 			break;
 
 		case IR_DOWN:
-			program_index = (program_index == 0) ? program_index = menu->programs.size() : program_index--;
-			Serial.printf("IR DOWN: program_index: %d\t programs.size(): %d\n", program_index, menu->programs.size());
-			print_program_string(menu->get_program_string(program_index));
+			program_index = (program_index == 0) ? menu->programs.size() - 1 : --program_index;
 			break;
 
 		case IR_OK:
 			selected_program = menu->select_program(program_index);
 			prog_params = selected_program->get_prog_params();
 			state = Function_State::CONFIGURING_PROGRAM;
+			break;
 		case IR_BACK:
 			state = Function_State::IDLE;
 			display->clear_display();
@@ -200,7 +199,7 @@ void loop()
 
 void print_program_string(const String program_string)
 {
-	display->write_string(program_string, program_string.length(), CRGB::Red);
+	display->write_string(program_string, program_string.length() - 1, CRGB::Red);
 	display->push_to_display();
 }
 

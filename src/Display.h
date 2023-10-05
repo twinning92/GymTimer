@@ -14,12 +14,14 @@ public:
     void update_segment(bool on, CRGB colour);
     uint8_t segment_led_mask;
 
+    // TODO: These are only public for serial output in update_segements()
+    char segment_designator;
+    uint16_t start_index;
+
 private:
     Segment() = default;
     CRGB *leds;
     uint8_t num_leds_per_segment;
-    uint16_t start_index;
-    char segment_designator;
 };
 
 class Digit
