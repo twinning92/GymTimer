@@ -15,13 +15,15 @@ class Program
 {
 protected:
     String program_name;
-    uint8_t start_seconds = 10;
-    uint16_t work_seconds;
-    uint16_t rest_seconds;
-    uint8_t num_rounds;
-    Phase program_phase;
-    uint16_t elapsed_seconds = 0;
 
+    uint8_t ten_second_countdown = 10;
+    uint16_t seconds_to_work = 0;
+    uint16_t seconds_to_rest = 0;
+    uint8_t total_num_rounds = 0;
+
+    uint16_t elapsed_seconds = 0;
+    
+    Phase program_phase;
     bool finished_program;
 
 public:
@@ -36,24 +38,27 @@ public:
     struct program_display_info
     {
         bool beep = false;
-        bool display_rounds;
+        bool display_rounds = false;
         bool currently_working = false;
         bool paused = false; // If program is paused, do something.
-        uint8_t rounds_remaining;
 
-        uint16_t beep_milliseconds;
-
-        uint16_t seconds_value;
+        uint8_t rounds_remaining = 0;
+        uint16_t seconds_display_val = 0;
+        
+        uint16_t beep_milliseconds = 0;
     };
+
     virtual void set_prog_params() = 0;
     virtual void init_display_info() = 0;
     virtual struct prog_params get_prog_params() { return this->program_params; }
     virtual struct program_display_info* get_display_info() { return &this->program_display_info; }
+    
     virtual void start()
     {
         this->program_phase = Phase::TEN_SECOND_TO_START;
         this->finished_program = false;
     }
+
     virtual void on_notify() = 0;
 
     const String get_name() { return program_name; }
@@ -71,27 +76,27 @@ public:
 
     void reset_program()
     {
-        work_seconds = 0;
-        rest_seconds = 0;
-        num_rounds = 0;
+        seconds_to_work = 0;
+        seconds_to_rest = 0;
+        total_num_rounds = 0;
     }
 
     struct prog_params program_params;
     struct program_display_info program_display_info;
 
-    virtual void set_work_seconds(int work_seconds_)
+    virtual void set_work_seconds(uint16_t work_seconds_)
     {
-        work_seconds = work_seconds_;
-        this->program_params.need_work = false;
+        this->seconds_to_work = work_seconds_;
     }
-    virtual void set_rest_seconds(int rest_seconds_)
+    virtual void set_rest_seconds(uint16_t rest_seconds_)
     {
-        rest_seconds = rest_seconds_;
-        this->program_params.need_rest = false;
+        this->seconds_to_rest = rest_seconds_;
     }
-    virtual void set_num_rounds(int num_rounds_)
+    virtual void set_num_rounds(uint8_t num_rounds_)
     {
-        num_rounds = num_rounds_;
-        this->program_params.need_rounds = false;
+        this->total_num_rounds = num_rounds_;
+        this->program_display_info.rounds_remaining = num_rounds_;
+        //Serial.printf("num rounds_: %d\n", num_rounds_);
+        //Serial.printf("num rounds: %d\n", total_num_rounds);
     }
 };

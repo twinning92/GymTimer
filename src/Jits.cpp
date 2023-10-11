@@ -27,14 +27,14 @@ void Jits::on_notify()
     case Phase::TEN_SECOND_TO_START:
         this->program_display_info.display_rounds = false;
 
-        this->program_display_info.seconds_value = this->elapsed_seconds;
+        this->program_display_info.seconds_display_val = this->elapsed_seconds;
         this->elapsed_seconds++;
-        if (this->start_seconds - this->elapsed_seconds <= 3)
+        if (this->ten_second_countdown - this->elapsed_seconds <= 3)
         {
             this->program_display_info.beep = true;
             this->program_display_info.beep_milliseconds = 100;
         }
-        if (this->start_seconds <= this->elapsed_seconds)
+        if (this->ten_second_countdown <= this->elapsed_seconds)
         {
             this->program_phase = Phase::WORK;
             this->program_display_info.display_rounds = true;
@@ -46,14 +46,14 @@ void Jits::on_notify()
     case Phase::WORK:
         this->program_display_info.beep = false;
 
-        this->program_display_info.seconds_value = elapsed_seconds;
+        this->program_display_info.seconds_display_val = elapsed_seconds;
         this->elapsed_seconds++;
-        if ((this->work_seconds - this->elapsed_seconds) <= 3)
+        if ((this->seconds_to_work - this->elapsed_seconds) <= 3)
         {
             this->program_display_info.beep = true;
             this->program_display_info.beep_milliseconds = 100;
         }
-        if (this->work_seconds >= this->elapsed_seconds)
+        if (this->seconds_to_work >= this->elapsed_seconds)
         {
             this->elapsed_seconds = 0;
             this->program_display_info.beep = true;
@@ -63,25 +63,25 @@ void Jits::on_notify()
         break;
     case Phase::REST:
         this->program_display_info.beep = false;
-        this->program_display_info.seconds_value = elapsed_seconds;
+        this->program_display_info.seconds_display_val = elapsed_seconds;
         this->elapsed_seconds++;
-        if ((this->rest_seconds - this->elapsed_seconds) <= 3)
+        if ((this->seconds_to_rest - this->elapsed_seconds) <= 3)
         {
             this->program_display_info.beep = true;
             this->program_display_info.beep_milliseconds = 100;
         }
-        if (this->rest_seconds >= this->elapsed_seconds)
+        if (this->seconds_to_rest >= this->elapsed_seconds)
         {
             this->program_display_info.beep = true;
             this->program_display_info.beep_milliseconds = 300;
-            this->num_rounds++;
-            this->program_display_info.rounds_remaining = this->num_rounds;
+            this->total_num_rounds++;
+            this->program_display_info.rounds_remaining = this->total_num_rounds;
             this->elapsed_seconds = 0;
             this->program_phase = Phase::WORK;
         }
         break;
 
-        if (this->num_rounds <= 0)
+        if (this->total_num_rounds <= 0)
         {
             this->finished_program = true;
         }

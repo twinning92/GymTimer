@@ -12,6 +12,10 @@ uint16_t* IR_Signal::get_ir_command()
 	{
 		this->ir_data = IrReceiver.decodedIRData;
 		IrReceiver.resume();
+		if (this->ir_data.flags & IRDATA_FLAGS_IS_REPEAT)
+		{
+			return nullptr;
+		}
 		return &this->ir_data.command;
 	}
 	else
