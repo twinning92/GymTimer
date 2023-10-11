@@ -9,8 +9,6 @@
 // There will be a Jits, 5 Jits, 7 Jits where 5/7 are the length of the work rounds.
 class Jits : public Program
 {
-    using Program::Program;
-
 public:
     Jits();
     void on_notify() override;

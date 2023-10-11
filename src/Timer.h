@@ -12,7 +12,7 @@ public:
 
 	Timer(const Timer &obj) = delete;
 	static Timer *getInstance();
-	static QueueHandle_t display_queue;
+	static volatile QueueHandle_t display_queue;
 
 	static void IRAM_ATTR on_timer();
 	void start_timer(hw_timer_t *hw_timer);

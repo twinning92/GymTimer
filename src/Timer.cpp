@@ -2,12 +2,16 @@
 #include "Timer.h"
 
 Timer *Timer::instance = nullptr;
-QueueHandle_t Timer::display_queue = nullptr;
+volatile QueueHandle_t Timer::display_queue = nullptr;
 unsigned int Timer::seconds_counter = 0;
 
 Timer::Timer()
 {
     display_queue = xQueueCreate(10, sizeof(bool));
+    if(display_queue == 0)
+    {
+        Serial.println("Queue create failed");
+    }
     this->instance = nullptr;
 };
 
@@ -30,25 +34,6 @@ void IRAM_ATTR Timer::on_timer()
     bool update_received = true;
     xQueueSendFromISR(display_queue, &update_received, NULL);
     seconds_counter++;
-
-    // TODO: Change it so the final rest period doesn't run.
-    // switch (instance->current_phase)
-    // {
-    // case Phase::WORK:
-    //     if (instance->work_seconds > seconds_counter)
-    //     {
-    //         seconds_counter = 0;
-    //         instance->current_phase = Phase::REST;
-    //     }
-    //     break;
-    // case Phase::REST:
-    //     if (instance->rest_seconds > seconds_counter)
-    //     {
-    //         seconds_counter = 0;
-    //         instance->current_phase = Phase::WORK;
-    //     }
-    //     break;
-    // }
 }
 
 void Timer::start_timer(hw_timer_t *hw_timer)

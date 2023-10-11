@@ -4,7 +4,7 @@
 class Countdown_Round : public Program
 {
 public:
-    using Program::Program;
+    Countdown_Round();
     void set_prog_params() override;
     void init_display_info() override;
 

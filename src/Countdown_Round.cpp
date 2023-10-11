@@ -1,5 +1,10 @@
 #include "Countdown_Round.h"
 
+Countdown_Round::Countdown_Round() : Program::Program("dn_rnd")
+{
+    set_prog_params();
+} 
+
 void Countdown_Round::set_prog_params()
 {
     this->program_params.need_rounds = true;

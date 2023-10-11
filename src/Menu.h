@@ -11,7 +11,7 @@
 class Menu
 {
 public:
-    Menu() : programs{new Countdown_Round("dn rnd"), new Jits("Jits"), new Countdown_Round("up rnd"), new Jits("jitsu")}{};
+    Menu() : programs{new Countdown_Round(), new Jits(), new Countdown_Round(), new Jits()}{};
     String get_program_string(uint8_t program_index);
     Program* select_program(uint8_t program_index);
 

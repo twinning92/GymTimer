@@ -29,8 +29,8 @@ public:
     {
         // Set all to true, and instantiations should update to false if not needeed upon construction
         bool need_rounds = true;
-        bool need_rest = true;
         bool need_work = true;
+        bool need_rest = true;
     };
 
     struct program_display_info
@@ -48,7 +48,7 @@ public:
     virtual void set_prog_params() = 0;
     virtual void init_display_info() = 0;
     virtual struct prog_params get_prog_params() { return this->program_params; }
-    virtual struct program_display_info get_display_info() { return this->program_display_info; }
+    virtual struct program_display_info* get_display_info() { return &this->program_display_info; }
     virtual void start()
     {
         this->program_phase = Phase::TEN_SECOND_TO_START;
@@ -65,8 +65,6 @@ public:
     {
         Serial.printf("Setting program name to: %s\n", program_name_);
         this->program_name = program_name_;
-        // this->set_prog_params();
-        // this->init_display_info();
     }
 
     virtual ~Program() = default;

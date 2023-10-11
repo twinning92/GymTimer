@@ -1,5 +1,10 @@
 #include "Jits.h"
 
+Jits::Jits() : Program::Program("Jits")
+{
+    set_prog_params();
+}
+
 // Pre programmed setup. No configuration. For Jits we explicitly set num rounds to 0 so we can increment and count
 void Jits::set_prog_params()
 {
@@ -13,6 +18,7 @@ void Jits::init_display_info()
 {
     this->program_display_info.display_rounds = true;
 }
+
 
 void Jits::on_notify()
 {
@@ -39,7 +45,7 @@ void Jits::on_notify()
         break;
     case Phase::WORK:
         this->program_display_info.beep = false;
-        
+
         this->program_display_info.seconds_value = elapsed_seconds;
         this->elapsed_seconds++;
         if ((this->work_seconds - this->elapsed_seconds) <= 3)
@@ -75,7 +81,7 @@ void Jits::on_notify()
         }
         break;
 
-        if(this->num_rounds <= 0)
+        if (this->num_rounds <= 0)
         {
             this->finished_program = true;
         }
