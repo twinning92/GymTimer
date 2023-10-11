@@ -2,7 +2,7 @@
 #define USE_IRREMOTE_HPP_AS_PLAIN_INCLUDE
 #include <IRremote.hpp>
 
-#define IR_RECEIVER_PIN 13
+#define IR_RECEIVER_PIN 4
 
 #define IR_UP 0x18
 #define IR_DOWN 0x52
@@ -31,9 +31,7 @@ public:
     }
     void setup_ir();
 
-    IRData get_from_queue();
-
-    void enqueue_ir_commands();
+    uint16_t* get_ir_command();
 
 private:
     IRrecv irrecv;

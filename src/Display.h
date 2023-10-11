@@ -5,7 +5,7 @@
 #define NUM_LEDS ((LEDS_PER_DIGIT * 6) + 8)
 #define NUM_SEGMENTS 7
 
-#define DATA_PIN 27
+#define DATA_PIN 15
 
 class Segment
 {

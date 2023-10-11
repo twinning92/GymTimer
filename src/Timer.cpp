@@ -7,7 +7,7 @@ unsigned int Timer::seconds_counter = 0;
 
 Timer::Timer()
 {
-    display_queue = xQueueCreate(10, sizeof(int));
+    display_queue = xQueueCreate(10, sizeof(bool));
     this->instance = nullptr;
 };
 
