@@ -16,15 +16,9 @@ class Program
 protected:
     String program_name;
 
-    uint8_t ten_second_countdown = 10;
     uint16_t seconds_to_work = 0;
     uint16_t seconds_to_rest = 0;
     uint8_t total_num_rounds = 0;
-
-    uint16_t elapsed_seconds = 0;
-    
-    Phase program_phase;
-    bool finished_program;
 
 public:
     struct prog_params
@@ -35,36 +29,46 @@ public:
         bool need_rest = true;
     };
 
-    struct program_display_info
+    struct program_runner
     {
+        Phase program_phase;
+
         bool beep = false;
-        bool display_rounds = false;
+        bool show_rounds = false;
         bool currently_working = false;
+        bool finished_program = false;
+
         bool paused = false; // If program is paused, do something.
 
-        uint8_t rounds_remaining = 0;
-        uint16_t seconds_display_val = 0;
-        
-        uint16_t beep_milliseconds = 0;
+        int8_t ten_second_countdown = 10;
+        int8_t total_rounds = 0;       // Store number of rounds. Don't devrement this one. In case we want to reuse this?
+        int16_t total_work_time = 0;
+        int16_t total_rest_time = 0;
+
+        int16_t seconds_value = 0; // Use seconds value to increment and calculate off. This is what is sent to the display.
+        int8_t rounds_value = 0;   // Rounds value to actually display
+        int16_t beep_milliseconds = 0;
     };
 
     virtual void set_prog_params() = 0;
     virtual void init_display_info() = 0;
-    virtual struct prog_params get_prog_params() { return this->program_params; }
-    virtual struct program_display_info* get_display_info() { return &this->program_display_info; }
-    
+
+    virtual struct program_runner *get_program_runner() { return &this->program_runner; }
+
     virtual void start()
     {
-        this->program_phase = Phase::TEN_SECOND_TO_START;
-        this->finished_program = false;
+        this->program_runner.program_phase = Phase::TEN_SECOND_TO_START;
+        this->program_runner.seconds_value = this->program_runner.ten_second_countdown;
+        this->program_runner.total_rounds = this->total_num_rounds;
+        this->program_runner.rounds_value = this->total_num_rounds;
+
+        this->program_runner.total_work_time = this->seconds_to_work;
+        this->program_runner.total_rest_time = this->seconds_to_rest;
     }
 
     virtual void on_notify() = 0;
 
     const String get_name() { return program_name; }
-    enum Phase get_program_phase() { return program_phase; }
-    bool get_program_finished() { return finished_program; }
-    void set_program_phase(enum Phase phase_) { this->program_phase = phase_; }
 
     Program(String program_name_)
     {
@@ -74,15 +78,8 @@ public:
 
     virtual ~Program() = default;
 
-    void reset_program()
-    {
-        seconds_to_work = 0;
-        seconds_to_rest = 0;
-        total_num_rounds = 0;
-    }
-
     struct prog_params program_params;
-    struct program_display_info program_display_info;
+    struct program_runner program_runner;
 
     virtual void set_work_seconds(uint16_t work_seconds_)
     {
@@ -95,8 +92,5 @@ public:
     virtual void set_num_rounds(uint8_t num_rounds_)
     {
         this->total_num_rounds = num_rounds_;
-        this->program_display_info.rounds_remaining = num_rounds_;
-        //Serial.printf("num rounds_: %d\n", num_rounds_);
-        //Serial.printf("num rounds: %d\n", total_num_rounds);
     }
 };

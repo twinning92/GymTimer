@@ -3,7 +3,7 @@
 Countdown_Round::Countdown_Round() : Program::Program("dn_rnd")
 {
     set_prog_params();
-} 
+}
 
 void Countdown_Round::set_prog_params()
 {
@@ -14,63 +14,63 @@ void Countdown_Round::set_prog_params()
 
 void Countdown_Round::init_display_info()
 {
-    this->program_display_info.display_rounds = true;
+    // Redundant, as I set to false first during 10 seconds start phase, then turn it back on.
+    this->program_runner.show_rounds = true;
 }
 
 void Countdown_Round::on_notify()
 {
-    switch (this->program_phase)
+    switch (this->program_runner.program_phase)
     {
     case Phase::TEN_SECOND_TO_START:
-        Serial.printf("Ten second start phase. Seconds remaining: %d\n", this->elapsed_seconds);
-        this->program_display_info.display_rounds = false;
-
-        this->program_display_info.seconds_display_val = this->elapsed_seconds;
-        this->elapsed_seconds++;
-        if (this->ten_second_countdown - this->elapsed_seconds <= 3)
+        this->program_runner.seconds_value--;
+        if (this->program_runner.seconds_value > 3)
         {
-            this->program_display_info.beep = true;
-            this->program_display_info.beep_milliseconds = 100;
+            Serial.printf("Beep!\n");
         }
-        if (this->ten_second_countdown <= this->elapsed_seconds)
+        if (this->program_runner.seconds_value <= 0)
         {
-            this->program_phase = Phase::WORK;
-            this->program_display_info.display_rounds = true;
-            this->program_display_info.beep_milliseconds = 300;
-            this->program_display_info.beep = false;
-            this->elapsed_seconds = 0;
-            this->program_display_info.currently_working = true;
+            Serial.printf("BEEEEEP!\n");
+            this->program_runner.seconds_value = this->program_runner.total_work_time;
+            this->program_runner.program_phase = Phase::WORK;
+            this->program_runner.show_rounds = true;
+            this->program_runner.currently_working = true;
         }
         break;
     case Phase::WORK:
-        this->program_display_info.beep = false;
-
-        this->program_display_info.seconds_display_val = this->seconds_to_work - this->elapsed_seconds;
-        this->elapsed_seconds++;
-        // Serial.printf("Work Seconds: %d\nElapsed Seconds: %d\nRounds: %d\n", this->seconds_to_work, this->elapsed_seconds, this->total_num_rounds);
-        this->program_display_info.rounds_remaining = this->total_num_rounds;
-
-        // if (seconds_to_work - elapsed_seconds <= 3)
-        // {
-        //     this->program_display_info.beep = true;
-        //     this->program_display_info.beep_milliseconds = 100;
-        // }
-        if (this->seconds_to_work >= this->elapsed_seconds)
+        this->program_runner.seconds_value--;
+        if (this->program_runner.rounds_value >= 0)
         {
-            this->elapsed_seconds = 0;
-            this->program_display_info.beep = true;
-            this->program_display_info.beep_milliseconds = 300;
-            if (this->total_num_rounds > 0)
+            if (this->program_runner.seconds_value > 3)
             {
-                this->total_num_rounds--;
+                Serial.printf("Beep!\n");
             }
-            this->program_display_info.rounds_remaining = this->total_num_rounds;
+            if (this->program_runner.seconds_value <= 0)
+            {
+                this->program_runner.seconds_value = this->seconds_to_work;
+                this->program_runner.rounds_value--;
+                Serial.printf("Rounds Value= %d\n", this->program_runner.rounds_value);
+            }
         }
-        break;
-    case Phase::FINISHED:
-        this->finished_program = true;
-        break;
-    default:
+        else
+        {
+            Serial.printf("BEEEEEEEEEEEEEEEEEEEEEP!\n");
+            this->program_runner.finished_program = true;
+            this->program_runner.currently_working = false;
+            this->program_runner.program_phase = Phase::FINISHED;
+        }
+
         break;
     }
+
+    //     break;
+    // case Phase::WORK:
+
+    //     break;
+    // case Phase::FINISHED:
+
+    //     break;
+    // default:
+    //     break;
+    // }
 }

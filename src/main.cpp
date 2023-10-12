@@ -20,6 +20,7 @@ enum class Function_State
 };
 
 hw_timer_t *hw_timer = nullptr;
+hw_timer_t *program_timer = nullptr;
 TickType_t x_ticks_to_wait = pdMS_TO_TICKS(150);
 Timer *timer = nullptr;
 Display *display = nullptr;
@@ -43,8 +44,13 @@ void setup()
 
 	hw_timer = timerBegin(0, 80, true);
 	timerAlarmWrite(hw_timer, 1000000, true);
-	timerAttachInterrupt(hw_timer, &Timer::on_timer, true);
+	timerAttachInterrupt(hw_timer, Timer::on_timer, true);
 	timer->start_timer(hw_timer);
+
+	// timerBegin throws an error when I use timer 1, but not timer 2?
+	program_timer = timerBegin(2, 80, true);
+	timerAlarmWrite(program_timer, 1000000, true);
+	timerAttachInterrupt(program_timer, Timer::on_program_timer, true);
 
 	display = new Display();
 	clock_69 = new Clock(display);
@@ -107,7 +113,7 @@ void menu_navigation(uint16_t ir_command, struct Program::prog_params *prog_para
 	case IR_OK:
 		display->clear_display();
 		*selected_program = menu->select_program(program_index);
-		*prog_params = (*selected_program)->get_prog_params();
+		*prog_params = (*selected_program)->program_params;
 		state = Function_State::CONFIGURING_PROGRAM;
 		Serial.println((*selected_program)->get_name());
 		break;
@@ -122,7 +128,7 @@ void menu_navigation(uint16_t ir_command, struct Program::prog_params *prog_para
 void loop()
 {
 	static struct Program::prog_params prog_params;
-	static struct Program::program_display_info *program_display_info;
+	static struct Program::program_runner *program_runner;
 	static Program *selected_program = nullptr;
 	uint16_t *ir_command = ir->get_ir_command();
 
@@ -203,7 +209,7 @@ void loop()
 		}
 		case config_state::s_work_green:
 		{
-			if (!selected_program->get_prog_params().need_rest)
+			if (!selected_program->program_params.need_rest)
 			{
 				state = Function_State::READY_TO_START;
 				break;
@@ -230,7 +236,7 @@ void loop()
 		display->write_string("ready", 5, CRGB::Aqua);
 		display->push_to_display();
 
-		program_display_info = selected_program->get_display_info();
+		program_runner = selected_program->get_program_runner();
 		if (ir_command != nullptr)
 		{
 			switch (*ir_command)
@@ -239,8 +245,8 @@ void loop()
 			case IR_OK:
 				selected_program->start();
 				state = Function_State::RUNNING_TIMER;
-				Serial.printf("Rounds: %d\n", program_display_info->rounds_remaining);
-				Serial.printf("Seconds Elapsed: %d\n", program_display_info->seconds_display_val);
+				Serial.printf("Rounds: %d\n", program_runner->total_rounds);
+				Serial.printf("Seconds Elapsed: %d\n", program_runner->seconds_value);
 				break;
 			default:
 				break;
@@ -251,34 +257,37 @@ void loop()
 	case Function_State::RUNNING_TIMER:
 		// Serial.println("State: RUNNING_TIMER");
 		display->clear_display();
+		timer->start_timer(program_timer);
 		bool temp;
-		if (xQueueReceive(timer->display_queue, (void *)&temp, x_ticks_to_wait))
+		if (xQueueReceive(timer->program_queue, (void *)&temp, x_ticks_to_wait))
 		{
 			selected_program->on_notify();
-			if (program_display_info != nullptr && program_display_info->display_rounds)
+			if (program_runner != nullptr && program_runner->show_rounds)
 			{
-				display->update_display(5, program_display_info->rounds_remaining / 10, CRGB::Green);
-				display->update_display(4, program_display_info->rounds_remaining % 10, CRGB::Green);
-				Serial.printf("Rounds remaining: %d\n", program_display_info->rounds_remaining);
+				display->update_display(5, program_runner->rounds_value / 10, CRGB::Green);
+				display->update_display(4, program_runner->rounds_value % 10, CRGB::Green);
 			}
 
-			if (program_display_info != nullptr)
+			if (program_runner != nullptr)
 			{
-				if (program_display_info->currently_working)
+				if (program_runner->currently_working)
 				{
-					display->convert_to_display(program_display_info->seconds_display_val, CRGB::Red);
-					// Serial.printf("Work: %d seconds remaining\n", program_display_info->seconds_display_val);
+					display->convert_to_display(program_runner->seconds_value, CRGB::Red);
+					// Serial.printf("Work: %d seconds remaining\n", program_runner->seconds_value);
 				}
 				else
 				{
-					display->convert_to_display(program_display_info->seconds_display_val, CRGB::Green);
-					// Serial.printf("Rest: %d seconds remaining\n", program_display_info->seconds_display_val);
+					display->convert_to_display(program_runner->seconds_value, CRGB::Green);
+					// Serial.printf("Rest: %d seconds remaining\n", program_runner->seconds_value);
 				}
 			}
 			display->push_to_display();
 
-			if (selected_program->get_program_finished())
+			if (selected_program->program_runner.finished_program)
 			{
+				timer->stop_timer(program_timer);
+				display->clear_display();
+				state = Function_State::IDLE;
 				// TODO: return to IDLE
 			}
 		}
