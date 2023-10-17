@@ -1,4 +1,5 @@
 #pragma once
+#include "config.h"
 
 #include <RtcDS1302.h>
 
@@ -10,7 +11,7 @@ private:
 
 public:
 	RTC() : 
-		myWire(4, 5, 2), 
+		myWire(RTC_IO_PIN, RTC_CLK_PIN, RTC_CE_PIN), 
 		rtc(myWire), 
 		date_time(RtcDateTime(__DATE__, __TIME__))
 	{

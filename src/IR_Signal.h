@@ -1,8 +1,8 @@
 #pragma once
+#include "config.h"
 #define USE_IRREMOTE_HPP_AS_PLAIN_INCLUDE
 #include <IRremote.hpp>
 
-#define IR_RECEIVER_PIN 4
 
 
 enum IR_Command : uint8_t

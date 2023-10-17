@@ -1,5 +1,6 @@
 #pragma once
 #include "Arduino.h"
+#include "config.h"
 #include "Menu.h"
 #include "IR_Signal.h"
 #include "Buzzer.h"

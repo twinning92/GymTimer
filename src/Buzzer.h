@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
+#include "config.h"
 
-#define BUZZER_PIN 5
 
 class Buzzer
 {

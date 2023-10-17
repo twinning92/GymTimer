@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.h"
 // used in the below includes so needs to be declared here
 enum User_Input_Action {
 	IA_ACCEPT, IA_BUSY, IA_BACK
@@ -59,9 +60,21 @@ public:
 			prog_list[prog_idx]->on_timer();
 	}
 
+	String state_name() {
+		switch (state) {
+			case FS_IDLE: 					return "FS_IDLE";
+			case FS_NAVIGATING_MENU: 		return "FS_NAVIGATING_MENU";
+			case FS_CONFIGURING_PROGRAM: 	return "FS_CONFIGURING_PROGRAM";
+			case FS_READY_TO_START: 		return "FS_READY_TO_START";
+			case FS_RUNNING_TIMER: 			return "FS_RUNNING_TIMER";
+		}
+		return "Unknown";
+	}
+
 	// called from main loop
 	void tick()
 	{
+		D_PRINT(8, "menu state: %s\n", state_name());
 		switch (state)
 		{
 		case FS_IDLE:

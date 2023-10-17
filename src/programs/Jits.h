@@ -9,14 +9,15 @@
 class Jits : public Program
 {
 public:
-	virtual bool show_rounds() final { return false; }	// Hide the rounds counter
+	virtual bool show_rounds() final { return true; }	// Show the rounds counter
 	virtual bool need_rounds() final { return false; }	// Rounds not configurable
 	virtual bool need_work()   final { return false; }	// Workout time not configurable
 	virtual bool need_rest()   final { return false; }	// Rest time not configurable
 	virtual bool direction()   final { return true; }	// Count up
 	virtual bool has_target()  final { return false; }	// Don't stop program
 
-	Jits(uint8_t time) : Program("up_rnd") {
+	Jits(uint8_t time) : Program("jits  ") {
+		m_name[5] = '0' + time;
 		m_work_time = time;
 		m_rest_time = time;
 	}
