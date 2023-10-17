@@ -48,7 +48,7 @@ public:
 	void reset()
 	{
 		state = FS_IDLE;
-		for(uint8_t idx = 0; idx < NUM_PROGRAMS; idx++)
+		for(uint8_t idx = 0; idx < NUM_PROGRAMS; idx++) // reset all programs
 			prog_list[prog_idx]->reset();
 		prog_idx = 0;
 	}
@@ -181,6 +181,7 @@ private:
 		clk[1] = now.Second() / 10;
 		clk[0] = now.Second() % 10;
 		display.write_string(clk, 6, CRGB::Honeydew);
+		display.push_to_display();
 		// check for IR commands
 		switch (ir.get_ir_command())
 		{
@@ -201,6 +202,7 @@ private:
 	{
 		// Display current program name
 		display.write_string(prog_list[prog_idx]->name(), 6, CRGB::Honeydew);
+		display.push_to_display();
 		// check for IR commands
 		switch (ir.get_ir_command())
 		{

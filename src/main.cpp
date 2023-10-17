@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <IRremote.hpp>
+#include <IRremote.hpp> // needed for the internal compilation objects
 
 #include "IR_Signal.h"
 #include "RTC.h"
@@ -27,7 +27,7 @@ static void on_timer(void) {
 void start_main_timer() {
 	uint16_t div = getApbFrequency() / 10000; // clock frequency / base frequency eg: 80,000,000 / 10,000
 	hw_timer_t *hw_timer = timerBegin(0, div, true);
-	timerAlarmWrite(hw_timer, 10000, true); // fire an event at 10hz
+	timerAlarmWrite(hw_timer, 1000, true); // fire an event at 10hz
 	timerAttachInterrupt(hw_timer, on_timer, true);
 	timerAlarmEnable(hw_timer);
 }
