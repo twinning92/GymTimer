@@ -1,96 +1,252 @@
 #pragma once
-#include <Arduino.h>
-#include "Observer.h"
+#include "Arduino.h"
+#include "Menu.h"
+#include "IR_Signal.h"
+#include "Buzzer.h"
+#include "Display.h"
 
-enum class Phase
+enum Phase
 {
-    TEN_SECOND_TO_START,
-    WORK,
-    REST,
-    PAUSED,
-    FINISHED,
+	P_IDLE,
+	P_PREP,
+	P_TEN_SECOND_TO_START,
+	P_WORK,
+	P_REST,
+	P_PAUSED,
+	P_FINISHED,
+	P_CANCELLED,
 };
 
+// TODO: add beeps
 class Program
 {
 protected:
-    String program_name;
+	// Configuration
+	String m_name;
+	uint16_t m_work_time = 0;
+	uint16_t m_rest_time = 0;
+	uint8_t m_rounds = 0;
+	// Runner variables
+	Phase m_phase = P_IDLE;
 
-    uint16_t seconds_to_work = 0;
-    uint16_t seconds_to_rest = 0;
-    uint8_t total_num_rounds = 0;
+	uint16_t m_current_work_time;
+	uint16_t m_current_rest_time;
+	uint8_t m_current_rounds;
+
+	uint8_t m_initial_countdown = 10;
+
+	uint16_t m_beep_milliseconds = 0;
+
 
 public:
-    struct prog_params
-    {
-        // Set all to true, and instantiations should update to false if not needeed upon construction
-        bool need_rounds = true;
-        bool need_work = true;
-        bool need_rest = true;
-    };
+	// base constructor
+	Program(String prog_name) { m_name = prog_name; }
 
-    struct program_runner
-    {
-        Phase program_phase;
+	// Override these as needed in each program
+	virtual bool show_rounds() { return false; } // Is the rounds counter shown while running?
+	virtual bool direction() { return false; }	 // Direction to count rounds T = up
+	virtual bool has_target() { return true; }	 // Stop program on round target?
+	virtual bool need_rounds() { return true; }
+	virtual bool need_work() { return true; }
+	virtual bool need_rest() { return true; }
 
-        bool beep = false;
-        bool show_rounds = false;
-        bool currently_working = false;
-        bool finished_program = false;
+	// Return the program's name
+	String name() const
+	{
+		return m_name;
+	}
 
-        bool paused = false; // If program is paused, do something.
+	// Set the workout time in seconds
+	void set_work_time(uint16_t work_time)
+	{
+		if (need_work())
+		{
+			m_work_time = work_time;
+		}
+	}
+	// Get the workout time in seconds
+	uint16_t get_work_time()
+	{
+		return m_work_time;
+	}
 
-        int8_t ten_second_countdown = 10;
-        int8_t total_rounds = 0;       // Store number of rounds. Don't devrement this one. In case we want to reuse this?
-        int16_t total_work_time = 0;
-        int16_t total_rest_time = 0;
+	// Set the resting time in seconds
+	void set_rest_time(uint16_t rest_time)
+	{
+		if (need_rest())
+		{
+			m_rest_time = rest_time;
+		}
+	}
+	// Get the resting time in seconds
+	uint16_t get_rest_time()
+	{
+		return m_rest_time;
+	}
 
-        int16_t seconds_value = 0; // Use seconds value to increment and calculate off. This is what is sent to the display.
-        int8_t rounds_value = 0;   // Rounds value to actually display
-        int16_t beep_milliseconds = 0;
-    };
+	// Set the number of rounds
+	void set_rounds(uint8_t rounds)
+	{
+		if (need_rounds())
+		{
+			m_rounds = rounds;
+		}
+	}
+	// Get the number of rounds
+	uint16_t get_rounds()
+	{
+		return m_rounds;
+	}
 
-    virtual void set_prog_params() = 0;
-    virtual void init_display_info() = 0;
+	void start()
+	{
+		m_phase = P_PREP;
+	}
+	void reset()
+	{
+		m_phase = P_IDLE;
+	}
+	// called from the timer @ 100ms interval
+	virtual void on_timer()
+	{
+		static uint8_t divider = 0;
+		static Phase last_phase = P_IDLE;
+		if (m_phase != P_PAUSED)
+		{
+			divider++;
+		}
+		IR_Command cmd = ir.get_ir_command();
+		// pause/cancel?
+		if (cmd == IR_OK)
+		{
+			if (m_phase == P_PAUSED)
+			{
+				m_phase = last_phase; // unpause
+			}
+			else
+			{
+				last_phase = m_phase; // pause
+				m_phase = P_PAUSED;
+			}
+		}
+		else if (cmd == IR_BACK)
+		{
+			if (m_phase == P_PAUSED)
+			{
+				m_phase = last_phase; // unpause
+			}
+			else
+			{
+				m_phase = P_CANCELLED; // cancel
+			}
+		}
+		// every second - we do this so that even tho we are running with a 1 second counter we have 100msec latency
+		if ((m_phase == P_PREP) || (divider == 10))
+		{
+			divider = 0;
+			switch (m_phase)
+			{
+			case P_PREP:
+				m_current_rounds = (!direction() && has_target()) ? m_rounds : 0;
+				m_current_work_time = m_work_time;
+				m_initial_countdown = 10;
+				m_phase = P_TEN_SECOND_TO_START;
+				break;
 
-    virtual struct program_runner *get_program_runner() { return &this->program_runner; }
+			case P_TEN_SECOND_TO_START:
+				m_initial_countdown--;
+				switch (m_initial_countdown)
+				{
+				case 3:
+				case 2:
+				case 1:
+					buzzer.start(2); // beep for 200msec
+					break;
+				case 0:
+					buzzer.start(5); // beep for 500msec
+					m_phase = P_WORK;
+					break;
+				}
+				break;
 
-    virtual void start()
-    {
-        this->program_runner.program_phase = Phase::TEN_SECOND_TO_START;
-        this->program_runner.seconds_value = this->program_runner.ten_second_countdown;
-        this->program_runner.total_rounds = this->total_num_rounds;
-        this->program_runner.rounds_value = this->total_num_rounds;
+			case P_WORK:
+				display.clear_display();
+				if (show_rounds())
+				{
+					display.set_digit(5, m_current_rounds / 10, CRGB::Red);
+					display.set_digit(4, m_current_rounds % 10, CRGB::Red);
+				}
+				display.show_time(m_current_work_time, CRGB::Red);
+				display.push_to_display();
+				if (m_current_work_time <= 1) // the last second
+				{
+					m_current_rest_time = m_rest_time;
+					m_phase = P_REST;
+				}
+				m_current_work_time--;
+				break;
 
-        this->program_runner.total_work_time = this->seconds_to_work;
-        this->program_runner.total_rest_time = this->seconds_to_rest;
-    }
+			case P_REST:
+				display.clear_display();
+				if (show_rounds())
+				{
+					display.set_digit(5, m_current_rounds / 10, CRGB::Green);
+					display.set_digit(4, m_current_rounds % 10, CRGB::Green);
+				}
+				display.show_time(m_current_work_time, CRGB::Green);
+				display.push_to_display();
+				if (m_current_rest_time <= 1) // the last second
+				{
+					m_phase = P_FINISHED; // default to finished the rounds
+					if (direction()) // up/down
+					{
+						// counting up to target
+						m_current_rounds++;
+						if (!has_target() || m_current_rounds < m_rounds) // no rounds left or there is no target
+						{
+							m_current_work_time = m_work_time;
+							m_phase = P_WORK;
+						}
+					}
+					else
+					{
+						// counting down to zero
+						m_current_rounds--;
+						if (m_current_rounds) // still have rounds left
+						{
+							m_current_work_time = m_work_time;
+							m_phase = P_WORK;
+						}
+					}
+				}
+				m_current_rest_time--;
+				break;
 
-    virtual void on_notify() = 0;
+			case P_PAUSED:
+				break;
 
-    const String get_name() { return program_name; }
+			case P_FINISHED:
+				break;
 
-    Program(String program_name_)
-    {
-        Serial.printf("Setting program name to: %s\n", program_name_);
-        this->program_name = program_name_;
-    }
+			case P_CANCELLED:
+				break;
+			}
+		}
+	}
 
-    virtual ~Program() = default;
-
-    struct prog_params program_params;
-    struct program_runner program_runner;
-
-    virtual void set_work_seconds(uint16_t work_seconds_)
-    {
-        this->seconds_to_work = work_seconds_;
-    }
-    virtual void set_rest_seconds(uint16_t rest_seconds_)
-    {
-        this->seconds_to_rest = rest_seconds_;
-    }
-    virtual void set_num_rounds(uint8_t num_rounds_)
-    {
-        this->total_num_rounds = num_rounds_;
-    }
+	virtual enum User_Input_Action status()
+	{
+		switch (m_phase)
+		{
+		case P_FINISHED:
+			m_phase = P_IDLE;
+			return IA_ACCEPT;
+		case P_CANCELLED:
+			m_phase = P_IDLE;
+			return IA_BACK;
+		default:
+			break;
+		}
+		return IA_BUSY;
+	}
 };
