@@ -8,11 +8,11 @@
 #define TEMP_IO_PIN		2
 
 // Debug level 0-none 9-all
-#define DEBUG_PRINT_LEVEL	0
-
+#define DEBUG_PRINT_LEVEL	7
 
 #define D_PRINT(level, format, args...) \
 	if(level <= DEBUG_PRINT_LEVEL) { \
-		Serial.printf("%s[%d]: "##format, __FILE__, __LINE__, ##args); \
+		Serial.printf("%s[%d]: ", __FILE__, __LINE__); \
+		Serial.printf(format, ##args); \
 	}
 
